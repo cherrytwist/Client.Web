@@ -1,19 +1,14 @@
 import { ApolloError } from '@apollo/client';
 import React, { FC } from 'react';
-import { Container } from 'react-bootstrap';
 import { useHistory } from 'react-router-dom';
-import {
-  User,
-  UserInput,
-  useUpdateUserMutation,
-  useUploadAvatarMutation,
-  useUserProfileQuery,
-} from '../../generated/graphql';
+import { User, UserInput, useUpdateUserMutation, useUserProfileQuery } from '../../generated/graphql';
 import { useNotification } from '../../hooks/useNotification';
 import { UserModel } from '../../models/User';
 import { EditMode } from '../../utils/editMode';
 import { UserForm } from '../Admin/User/UserForm';
+import EditAvatar from '../Avatar/EditAvatar';
 import { Loading } from '../core/Loading';
+import Section, { Header as SectionHeader } from '../core/Section';
 
 interface EditUserProfileProps {}
 
@@ -21,7 +16,7 @@ export const EditUserProfile: FC<EditUserProfileProps> = () => {
   const history = useHistory();
   const { data, loading } = useUserProfileQuery();
   const notify = useNotification();
-  const [uploadAvatar] = useUploadAvatarMutation();
+
   const [updateUser] = useUpdateUserMutation({
     onError: error => handleError(error),
     onCompleted: () => {
@@ -57,30 +52,18 @@ export const EditUserProfile: FC<EditUserProfileProps> = () => {
 
   const handleCancel = () => history.goBack();
 
-  const handleAvatarChange = (file: File) => {
-    if (user && user.id && user.profile?.id) {
-      uploadAvatar({
-        variables: {
-          profileId: Number(user.profile.id),
-          file,
-        },
-      }).catch(err => handleError(err));
-    }
-  };
-
   const user = data?.me as User;
   if (loading) return <Loading text={'Loading User Profile ...'} />;
   return (
-    <Container className={'mt-5'}>
+    <Section avatar={<EditAvatar profile={user.profile} />}>
+      <SectionHeader text={'Profile'} />
       <UserForm
-        title={'Profile'}
         user={{ ...user, aadPassword: '' } as UserModel}
         editMode={EditMode.edit}
         onSave={handleSave}
         onCancel={handleCancel}
-        onAvatarChange={handleAvatarChange}
       />
-    </Container>
+    </Section>
   );
 };
 export default EditUserProfile;

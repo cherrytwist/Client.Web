@@ -10,8 +10,7 @@ import { EditMode } from '../../../utils/editMode';
 import Avatar from '../../core/Avatar';
 import Loading from '../../core/Loading';
 import SearchDropdown from '../../core/SearchDropdown';
-import Typography from '../../core/Typography';
-import UploadButton from '../../core/UploadButton';
+import { UploadButton } from '../../core/UploadButton';
 import { InputField } from '../Common/InputField';
 import { ReferenceSegment } from '../Common/ReferenceSegment';
 import TagsetSegment from '../Common/TagsetSegment';
@@ -31,8 +30,6 @@ export const UserForm: FC<UserProps> = ({
   editMode = EditMode.readOnly,
   onSave,
   onCancel,
-  onAvatarChange,
-  title = 'User',
 }) => {
   const [removeRef] = useRemoveReferenceMutation();
 
@@ -164,9 +161,6 @@ export const UserForm: FC<UserProps> = ({
 
   return (
     <>
-      <Typography variant={'h3'} className={'mt-4 mb-4'}>
-        {title}
-      </Typography>
       <Formik
         initialValues={initialValues}
         validationSchema={isReadOnlyMode ? undefined : validationSchema}
@@ -184,21 +178,12 @@ export const UserForm: FC<UserProps> = ({
               <Form.Row>
                 <Avatar src={avatar} size={'lg'} className={'mb-2'} name={'Avatar'} />
               </Form.Row>
-              {onAvatarChange && (
-                <Form.Row>
-                  <UploadButton
-                    accept={'image/*'}
-                    onChange={e => {
-                      const file = e && e.target && e.target.files && e.target.files[0];
-                      if (onAvatarChange && file) onAvatarChange(file);
-                    }}
-                    className={'mb-4'}
-                    small
-                  >
-                    Edit
-                  </UploadButton>
-                </Form.Row>
-              )}
+
+              <Form.Row>
+                <UploadButton accept={'image/*'} className={'mb-4'} small>
+                  Edit
+                </UploadButton>
+              </Form.Row>
 
               <Form.Row>
                 <InputField

@@ -99,13 +99,16 @@ const Avatar: FC<AvatarProps> = ({ size = 'md', classes = {}, className, src, th
 
   const styles = useAvatarStyles(classes);
   const [fallback, setFallback] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(true);
+  const handleLoad = () => setIsLoaded(true);
+  const handleError = () => setFallback(true);
 
   return (
     <div
       className={clsx(styles.avatarWrapper, userId && styles.clickable, size, className)}
       onClick={() => userId && !isPopUpShown && setIsPopUpShown(true)}
     >
-      {(!src || fallback) && (
+      {(!src || fallback || !isLoaded) && (
         <div className={clsx(styles.noAvatar, styles[theme], size, className)}>
           <Typography variant="button" color="inherit">
             ?
@@ -118,12 +121,19 @@ const Avatar: FC<AvatarProps> = ({ size = 'md', classes = {}, className, src, th
             className={clsx(styles.avatar, size, className)}
             src={src}
             alt="user"
-            onError={() => setFallback(true)}
+            onLoad={handleLoad}
+            onError={handleError}
           />
         </OverlayTrigger>
       )}
       {src && !fallback && !name && (
-        <img className={clsx(styles.avatar, size, className)} src={src} alt="user" onError={() => setFallback(true)} />
+        <img
+          className={clsx(styles.avatar, size, className)}
+          src={src}
+          alt="user"
+          onLoad={handleLoad}
+          onError={handleError}
+        />
       )}
       {userId && isPopUpShown && <UserPopUp id={userId} onHide={() => setIsPopUpShown(false)} />}
     </div>

@@ -8,7 +8,7 @@ const useStyles = createStyles(theme => ({
   },
 }));
 
-export const Image: FC<ImageProps> = ({ src, alt, ...props }) => {
+export const Image: FC<ImageProps> = ({ src, ...props }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const styles = useStyles();
 
@@ -21,7 +21,6 @@ export const Image: FC<ImageProps> = ({ src, alt, ...props }) => {
         }}
         className="image full"
         style={{ opacity: isLoaded ? 1 : 0 }}
-        alt={alt}
         src={src}
         {...props}
       />
