@@ -1,13 +1,15 @@
-import { ApolloLink, from, fromPromise, InMemoryCache, NormalizedCacheObject, Operation } from '@apollo/client';
+import { ApolloLink, from, fromPromise, InMemoryCache, NormalizedCacheObject, Operation, split } from '@apollo/client';
 import { ApolloClient } from '@apollo/client/core/ApolloClient';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
+import { WebSocketLink } from '@apollo/client/link/ws';
+import { getMainDefinition } from '@apollo/client/utilities';
 import { createUploadLink } from 'apollo-upload-client';
 import { useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router';
-import { env } from '../env';
+// import { env } from '../env';
 import { typePolicies } from '../graphql/cache/typePolicies';
 import { AUTH_STATUS_KEY, TOKEN_KEY } from '../models/Constants';
 import { ErrorStatus } from '../models/Errors';
@@ -16,7 +18,7 @@ import { AuthStatus } from '../reducers/auth/types';
 import { pushError } from '../reducers/error/actions';
 import { useAuthenticationContext } from './useAuthenticationContext';
 
-const enableQueryDebug = !!(env && env?.REACT_APP_DEBUG_QUERY === 'true');
+// const enableQueryDebug = !!(env && env?.REACT_APP_DEBUG_QUERY === 'true');
 
 export const useGraphQLClient = (graphQLEndpoint: string): ApolloClient<NormalizedCacheObject> => {
   const history = useHistory();
@@ -140,24 +142,43 @@ export const useGraphQLClient = (graphQLEndpoint: string): ApolloClient<Normaliz
     };
   });
 
-  const consoleLink = new ApolloLink((operation, forward) => {
-    if (enableQueryDebug) {
-      console.log(`starting request for ${operation.operationName}`);
-    }
-    return forward(operation).map(data => {
-      if (enableQueryDebug) {
-        console.log(`ending request for ${operation.operationName}`);
-        if (enableQueryDebug && operation.operationName === 'userProfile') {
-          console.log(data);
-        }
-      }
-      return data;
-    });
-  });
+  // const consoleLink = new ApolloLink((operation, forward) => {
+  //   if (enableQueryDebug) {
+  //     console.log(`starting request for ${operation.operationName}`);
+  //   }
+  //   return forward(operation).map(data => {
+  //     if (enableQueryDebug) {
+  //       console.log(`ending request for ${operation.operationName}`);
+  //       if (enableQueryDebug && operation.operationName === 'userProfile') {
+  //         console.log(data);
+  //       }
+  //     }
+  //     return data;
+  //   });
+  // });
 
   const httpLink = createUploadLink({
     uri: graphQLEndpoint,
   });
+
+  const wsLink = new WebSocketLink({
+    uri: 'ws://localhost:4000/graphql',
+    options: {
+      reconnect: true,
+      connectionParams: {
+        authToken: localStorage.getItem(TOKEN_KEY) || '',
+      },
+    },
+  });
+
+  const splitLink = split(
+    ({ query }) => {
+      const definition = getMainDefinition(query);
+      return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
+    },
+    wsLink,
+    httpLink
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const retryIf = (error: any, _operation: Operation) => {
@@ -198,7 +219,7 @@ export const useGraphQLClient = (graphQLEndpoint: string): ApolloClient<Normaliz
   return useMemo(() => {
     console.log('Create apollo client!');
     return new ApolloClient({
-      link: from([authLink, errorLink, retryLink, omitTypenameLink, consoleLink, httpLink]),
+      link: from([authLink, errorLink, retryLink, omitTypenameLink, splitLink]),
       cache: new InMemoryCache({ addTypename: true, typePolicies: typePolicies }),
     });
   }, [dispatch]);

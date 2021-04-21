@@ -11,7 +11,7 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  /** A short text based identifier, 3 <= length <= 20. Used for URL paths in clients.  */
+  /** A short text based identifier, 3 <= length <= 20. Used for URL paths in clients. Characters allowed: a-z,A-Z,0-9. */
   TextID: string;
   /** The `Upload` scalar type represents a file upload. */
   Upload: File;
@@ -280,7 +280,7 @@ export type CreateOrganisationInput = {
   name: Scalars['String'];
   profileData?: Maybe<CreateProfileInput>;
   /** The unique text based ID for this organisation */
-  textID: Scalars['String'];
+  textID: Scalars['TextID'];
 };
 
 export type CreateProfileInput = {
@@ -1026,6 +1026,11 @@ export type ServiceMetadata = {
   name?: Maybe<Scalars['String']>;
   /** Version in the format {major.minor.patch} - using SemVer. */
   version?: Maybe<Scalars['String']>;
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  avatarUploaded: Profile;
 };
 
 export type Tagset = {
@@ -2054,6 +2059,12 @@ export type UploadAvatarMutationVariables = Exact<{
 
 export type UploadAvatarMutation = { __typename?: 'Mutation' } & {
   uploadAvatar: { __typename?: 'Profile' } & AvatarFragment;
+};
+
+export type OnAvatarUploadedSubscriptionVariables = Exact<{ [key: string]: never }>;
+
+export type OnAvatarUploadedSubscription = { __typename?: 'Subscription' } & {
+  avatarUploaded: { __typename?: 'Profile' } & Pick<Profile, 'id' | 'avatar'>;
 };
 
 export type ProjectDetailsFragment = { __typename?: 'Project' } & Pick<
@@ -5459,6 +5470,40 @@ export type UploadAvatarMutationOptions = Apollo.BaseMutationOptions<
   UploadAvatarMutation,
   UploadAvatarMutationVariables
 >;
+export const OnAvatarUploadedDocument = gql`
+  subscription OnAvatarUploaded {
+    avatarUploaded {
+      id
+      avatar
+    }
+  }
+`;
+
+/**
+ * __useOnAvatarUploadedSubscription__
+ *
+ * To run a query within a React component, call `useOnAvatarUploadedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useOnAvatarUploadedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOnAvatarUploadedSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useOnAvatarUploadedSubscription(
+  baseOptions?: Apollo.SubscriptionHookOptions<OnAvatarUploadedSubscription, OnAvatarUploadedSubscriptionVariables>
+) {
+  return Apollo.useSubscription<OnAvatarUploadedSubscription, OnAvatarUploadedSubscriptionVariables>(
+    OnAvatarUploadedDocument,
+    baseOptions
+  );
+}
+export type OnAvatarUploadedSubscriptionHookResult = ReturnType<typeof useOnAvatarUploadedSubscription>;
+export type OnAvatarUploadedSubscriptionResult = Apollo.SubscriptionResult<OnAvatarUploadedSubscription>;
 export const ProjectProfileDocument = gql`
   query projectProfile($id: String!) {
     ecoverse {

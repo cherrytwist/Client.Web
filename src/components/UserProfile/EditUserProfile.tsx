@@ -1,10 +1,11 @@
 import { ApolloError } from '@apollo/client';
 import React, { FC } from 'react';
-import { Container } from 'react-bootstrap';
+import { Alert, Container } from 'react-bootstrap';
 import { useHistory } from 'react-router-dom';
 import {
-  User,
   UpdateUserInput,
+  useOnAvatarUploadedSubscription,
+  User,
   useUpdateUserMutation,
   useUploadAvatarMutation,
   useUserProfileQuery,
@@ -51,8 +52,9 @@ export const EditUserProfile: FC<EditUserProfileProps> = () => {
     },
   });
 
+  const { data: avatarUpdated } = useOnAvatarUploadedSubscription();
+
   const handleError = (error: ApolloError) => {
-    debugger;
     console.log(error);
   };
 
@@ -84,6 +86,9 @@ export const EditUserProfile: FC<EditUserProfileProps> = () => {
   const user = data?.me as User;
   return (
     <Container className={'mt-5'}>
+      <Alert show={!!avatarUpdated} variant={'success'}>
+        {avatarUpdated?.avatarUploaded.avatar}
+      </Alert>
       <UserForm
         title={'Profile'}
         user={{ ...user } as UserModel}

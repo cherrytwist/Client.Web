@@ -15,3 +15,12 @@ export const UPLOAD_AVATAR_MUTATION = gql`
   }
   ${AVATAR_FRAGMENT}
 `;
+
+export const AVATAR_UPDATED_SUBSCRIPTION = gql`
+  subscription OnAvatarUploaded {
+    avatarUploaded {
+      id
+      avatar
+    }
+  }
+`;
