@@ -471,6 +471,15 @@ export type MemberOf = {
   organisations: Array<Organisation>;
 };
 
+export type Message = {
+  __typename?: 'Message';
+  id: Scalars['ID'];
+  message: Scalars['String'];
+  reciever: Scalars['String'];
+  sender: Scalars['String'];
+  timestamp: Scalars['Float'];
+};
+
 export type Metadata = {
   __typename?: 'Metadata';
   /** Collection of metadata about Cherrytwist services. */
@@ -903,6 +912,7 @@ export type Query = {
   ecoverse: Ecoverse;
   /** The currently logged in user */
   me: User;
+  messages: Array<Message>;
   /** Cherrytwist Services Metadata */
   metadata: Metadata;
   /** A particular Organisation */
@@ -1031,6 +1041,7 @@ export type ServiceMetadata = {
 export type Subscription = {
   __typename?: 'Subscription';
   avatarUploaded: Profile;
+  messageReceived: Message;
 };
 
 export type Tagset = {
@@ -1815,6 +1826,18 @@ export type EcoverseCommunityQuery = { __typename?: 'Query' } & {
   ecoverse: { __typename?: 'Ecoverse' } & Pick<Ecoverse, 'id'> & {
       community?: Maybe<{ __typename?: 'Community' } & CommunityDetailsFragment>;
     };
+};
+
+export type MessagesQueryVariables = Exact<{ [key: string]: never }>;
+
+export type MessagesQuery = { __typename?: 'Query' } & {
+  messages: Array<{ __typename?: 'Message' } & Pick<Message, 'id' | 'message' | 'reciever' | 'sender' | 'timestamp'>>;
+};
+
+export type MessageReceivedSubscriptionVariables = Exact<{ [key: string]: never }>;
+
+export type MessageReceivedSubscription = { __typename?: 'Subscription' } & {
+  messageReceived: { __typename?: 'Message' } & Pick<Message, 'id' | 'message' | 'reciever' | 'sender' | 'timestamp'>;
 };
 
 export type OpportunityProfileQueryVariables = Exact<{
@@ -4582,6 +4605,79 @@ export function useEcoverseCommunityLazyQuery(
 export type EcoverseCommunityQueryHookResult = ReturnType<typeof useEcoverseCommunityQuery>;
 export type EcoverseCommunityLazyQueryHookResult = ReturnType<typeof useEcoverseCommunityLazyQuery>;
 export type EcoverseCommunityQueryResult = Apollo.QueryResult<EcoverseCommunityQuery, EcoverseCommunityQueryVariables>;
+export const MessagesDocument = gql`
+  query messages {
+    messages {
+      id
+      message
+      reciever
+      sender
+      timestamp
+    }
+  }
+`;
+
+/**
+ * __useMessagesQuery__
+ *
+ * To run a query within a React component, call `useMessagesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMessagesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMessagesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMessagesQuery(baseOptions?: Apollo.QueryHookOptions<MessagesQuery, MessagesQueryVariables>) {
+  return Apollo.useQuery<MessagesQuery, MessagesQueryVariables>(MessagesDocument, baseOptions);
+}
+export function useMessagesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MessagesQuery, MessagesQueryVariables>) {
+  return Apollo.useLazyQuery<MessagesQuery, MessagesQueryVariables>(MessagesDocument, baseOptions);
+}
+export type MessagesQueryHookResult = ReturnType<typeof useMessagesQuery>;
+export type MessagesLazyQueryHookResult = ReturnType<typeof useMessagesLazyQuery>;
+export type MessagesQueryResult = Apollo.QueryResult<MessagesQuery, MessagesQueryVariables>;
+export const MessageReceivedDocument = gql`
+  subscription messageReceived {
+    messageReceived {
+      id
+      message
+      reciever
+      sender
+      timestamp
+    }
+  }
+`;
+
+/**
+ * __useMessageReceivedSubscription__
+ *
+ * To run a query within a React component, call `useMessageReceivedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useMessageReceivedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMessageReceivedSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMessageReceivedSubscription(
+  baseOptions?: Apollo.SubscriptionHookOptions<MessageReceivedSubscription, MessageReceivedSubscriptionVariables>
+) {
+  return Apollo.useSubscription<MessageReceivedSubscription, MessageReceivedSubscriptionVariables>(
+    MessageReceivedDocument,
+    baseOptions
+  );
+}
+export type MessageReceivedSubscriptionHookResult = ReturnType<typeof useMessageReceivedSubscription>;
+export type MessageReceivedSubscriptionResult = Apollo.SubscriptionResult<MessageReceivedSubscription>;
 export const OpportunityProfileDocument = gql`
   query opportunityProfile($id: String!) {
     ecoverse {

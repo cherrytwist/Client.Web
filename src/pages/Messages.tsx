@@ -1,59 +1,60 @@
 import clsx from 'clsx';
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useEffect, useRef, useState } from 'react';
-import { Fade, Spinner } from 'react-bootstrap';
+import React, { FC, useEffect, useRef } from 'react';
+import { Fade } from 'react-bootstrap';
 import Card from '../components/core/Card';
 import Section, { Header, SubHeader } from '../components/core/Section';
 import Typography from '../components/core/Typography';
+import { MessageReceivedSubscription, useMessagesQuery } from '../generated/graphql';
+import { MESSAGE_SUBSCRIPTION } from '../graphql/message';
 import { useUpdateNavigation } from '../hooks/useNavigation';
 import { createStyles } from '../hooks/useTheme';
 import { PageProps } from './common';
+// const date = new Date();
+// const closure = (date, offset) => {
+//   const newDate = new Date(date);
+//   newDate.setMilliseconds(offset);
+//   return newDate;
+// };
 
-const date = new Date();
-const closure = (date, offset) => {
-  const newDate = new Date(date);
-  newDate.setMilliseconds(offset);
-  return newDate;
-};
-
-const messages = [
-  {
-    content: 'Hey! It is us! The cherrytwist developers!',
-    left: false,
-    delay: 1000,
-    date: closure(date, 1000),
-  },
-  {
-    content: 'Hi! Nice to meet you!',
-    left: true,
-    delay: 2500,
-    date: closure(date, 3500),
-  },
-  {
-    content: 'When can I expect the messaging system to be up and running?',
-    left: true,
-    delay: 2000,
-    date: closure(date, 5500),
-  },
-  {
-    content: 'Pretty soon! We are working hard to make this available for You.',
-    left: false,
-    delay: 3000,
-    date: closure(date, 8500),
-  },
-  {
-    content: 'Will you let me know when it is ready?',
-    left: true,
-    delay: 2000,
-    date: closure(date, 10500),
-  },
-  {
-    content: 'Of course! Do not forget to check your email! :)',
-    left: false,
-    delay: 2000,
-    date: closure(date, 12500),
-  },
-];
+// const messages = [
+//   {
+//     content: 'Hey! It is us! The cherrytwist developers!',
+//     left: false,
+//     delay: 1000,
+//     date: closure(date, 1000),
+//   },
+//   {
+//     content: 'Hi! Nice to meet you!',
+//     left: true,
+//     delay: 2500,
+//     date: closure(date, 3500),
+//   },
+//   {
+//     content: 'When can I expect the messaging system to be up and running?',
+//     left: true,
+//     delay: 2000,
+//     date: closure(date, 5500),
+//   },
+//   {
+//     content: 'Pretty soon! We are working hard to make this available for You.',
+//     left: false,
+//     delay: 3000,
+//     date: closure(date, 8500),
+//   },
+//   {
+//     content: 'Will you let me know when it is ready?',
+//     left: true,
+//     delay: 2000,
+//     date: closure(date, 10500),
+//   },
+//   {
+//     content: 'Of course! Do not forget to check your email! :)',
+//     left: false,
+//     delay: 2000,
+//     date: closure(date, 12500),
+//   },
+// ];
 
 const useMessageStyles = createStyles(theme => ({
   messageContainer: {
@@ -116,37 +117,53 @@ const useMessageStyles = createStyles(theme => ({
   },
 }));
 export const DummyChat: FC = () => {
+  const { data, subscribeToMore } = useMessagesQuery();
   const styles = useMessageStyles();
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const [messagesLeft, setMessagesLeft] = useState<
-    Array<{ content: string; delay: number; left: boolean; date: Date }>
-  >([]);
-  const [displayedMessages, setDisplayedMessages] = useState<
-    Array<{ content: string; delay: number; left: boolean; date: Date }>
-  >([]);
-  const [showLoader, setShowLoader] = useState({ right: false, left: false });
+  // const [messagesLeft, setMessagesLeft] = useState<
+  //   Array<{ content: string; delay: number; left: boolean; date: Date }>
+  // >([]);
+  // const [displayedMessages, setDisplayedMessages] = useState<
+  //   Array<{ content: string; delay: number; left: boolean; date: Date }>
+  // >([]);
+  // const [showLoader, setShowLoader] = useState({ right: false, left: false });
 
   useEffect(() => {
-    const [message, ...rest] = messagesLeft;
-    let timeout: any = undefined;
+    const unSunbscribe = subscribeToMore<MessageReceivedSubscription>({
+      document: MESSAGE_SUBSCRIPTION,
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data) return prev;
 
-    if (message) {
-      setShowLoader({ left: message.left, right: !message.left });
-      timeout = setTimeout(() => {
-        setShowLoader({ right: false, left: false });
-        setDisplayedMessages(x => [...x, message]);
-        setMessagesLeft(rest);
-      }, message.delay);
-    }
+        const newMessage = subscriptionData.data.messageReceived;
+        return Object.assign({}, prev, {
+          messages: [...prev.messages, newMessage],
+        });
+      },
+    });
+    return () => unSunbscribe();
+  }, [subscribeToMore]);
 
-    return () => clearTimeout(timeout);
-  }, [messagesLeft, setMessagesLeft, setDisplayedMessages, setShowLoader]);
+  // useEffect(() => {
+  //   const [message, ...rest] = messagesLeft;
+  //   let timeout: any = undefined;
 
-  useEffect(() => setMessagesLeft(messages), [setMessagesLeft]);
+  //   if (message) {
+  //     setShowLoader({ left: message.left, right: !message.left });
+  //     timeout = setTimeout(() => {
+  //       setShowLoader({ right: false, left: false });
+  //       setDisplayedMessages(x => [...x, message]);
+  //       setMessagesLeft(rest);
+  //     }, message.delay);
+  //   }
+
+  //   return () => clearTimeout(timeout);
+  // }, [messagesLeft, setMessagesLeft, setDisplayedMessages, setShowLoader]);
+
+  // useEffect(() => setMessagesLeft(messages), [setMessagesLeft]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
-  }, [displayedMessages]);
+  }, [data]);
 
   return (
     <Card
@@ -158,19 +175,30 @@ export const DummyChat: FC = () => {
       }}
     >
       <div>
-        {displayedMessages.map((x, i) => (
+        {data?.messages.map((x, i) => (
           <Fade key={i} in appear>
-            <div className={clsx(x.left ? styles.containerLeft : styles.containerRight, styles.messageContainer)}>
-              <div style={{ display: 'flex' }} className={clsx(x.left ? styles.left : styles.right)}>
-                <span className={clsx(styles.message, x.left ? 'me' : 'you')}>{x.content}</span>
+            <div
+              className={clsx(
+                x.sender === 'acho@acho.com' ? styles.containerLeft : styles.containerRight,
+                styles.messageContainer
+              )}
+            >
+              <div
+                style={{ display: 'flex' }}
+                className={clsx(x.sender === 'acho@acho.com' ? styles.left : styles.right)}
+              >
+                <span className={clsx(styles.message, x.sender === 'acho@acho.com' ? 'me' : 'you')}>{x.message}</span>
               </div>
-              <Typography className={clsx(x.left ? styles.textLeft : styles.textRight)} variant="caption">
-                {x.date.toLocaleTimeString()}
+              <Typography
+                className={clsx(x.sender === 'acho@acho.com' ? styles.textLeft : styles.textRight)}
+                variant="caption"
+              >
+                {new Date(x.timestamp).toLocaleTimeString()}
               </Typography>
             </div>
           </Fade>
         ))}
-        <Fade key="loader-right" in={showLoader.right}>
+        {/* <Fade key="loader-right" in={showLoader.right}>
           <div className={clsx(styles.containerRight, styles.messageContainer, styles.loader)}>
             <div className={styles.containerRight}>
               <Spinner animation="grow" size="sm" />
@@ -187,7 +215,7 @@ export const DummyChat: FC = () => {
               <Spinner animation="grow" size="sm" />
             </div>
           </div>
-        </Fade>
+        </Fade> */}
         <div ref={bottomRef}></div>
       </div>
     </Card>
