@@ -2,16 +2,17 @@ import clsx from 'clsx';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useEffect, useRef } from 'react';
 import { Fade } from 'react-bootstrap';
+import { ChatWindow } from '../components/Chat/ChatWindow';
 import { Room } from '../components/Chat/RoomList';
 import RoomsWidget from '../components/Chat/RoomsWidget';
 import Card from '../components/core/Card';
 import Section, { Header } from '../components/core/Section';
 import Typography from '../components/core/Typography';
-import { OnMessageReceivedSubscription } from '../types/graphql-schema';
 import { useMessagesQuery } from '../generated/graphql';
 import { MESSAGE_SUBSCRIPTION } from '../graphql/message';
 import { useUpdateNavigation } from '../hooks/useNavigation';
 import { createStyles } from '../hooks/useTheme';
+import { OnMessageReceivedSubscription } from '../types/graphql-schema';
 import { PageProps } from './common';
 // const date = new Date();
 // const closure = (date, offset) => {
@@ -319,7 +320,7 @@ export const Messages: FC<PageProps> = () => {
         gutters={{ root: true, avatar: false, content: false }}
         avatar={<RoomsWidget rooms={rooms} />}
       >
-        <DummyChat />
+        <ChatWindow />
       </Section>
     </>
   );
