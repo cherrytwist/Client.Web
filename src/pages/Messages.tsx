@@ -2,8 +2,10 @@ import clsx from 'clsx';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useEffect, useRef, useState } from 'react';
 import { Fade, Spinner } from 'react-bootstrap';
+import { Room } from '../components/Chat/RoomList';
+import RoomsWidget from '../components/Chat/RoomsWidget';
 import Card from '../components/core/Card';
-import Section, { Header, SubHeader } from '../components/core/Section';
+import Section, { Header } from '../components/core/Section';
 import Typography from '../components/core/Typography';
 import { useUpdateNavigation } from '../hooks/useNavigation';
 import { createStyles } from '../hooks/useTheme';
@@ -229,7 +231,7 @@ const useContactStyles = createStyles(theme => ({
   },
 }));
 
-const DummyChatList: FC = () => {
+export const DummyChatList: FC = () => {
   const styles = useContactStyles();
   return (
     <Card
@@ -266,16 +268,28 @@ const paths = {
   currentPaths: [],
 };
 
+const rooms: Room[] = [
+  { name: 'Challenge', type: 'room' },
+  { name: 'Opportunity', type: 'room' },
+  { name: 'Organization', type: 'room' },
+  { name: 'Neo', type: 'user' },
+  { name: 'Chris P. Bacon', type: 'user' },
+  { name: 'Mr. Smith', type: 'user' },
+];
+
 export const Messages: FC<PageProps> = () => {
   useUpdateNavigation(paths);
 
   return (
     <>
       <Section gutters={{ root: true, avatar: false, content: false }}>
-        <Header text="Messages" tagText="coming soon" />
-        <SubHeader text="You'll be able to use the messaging system to chat with other members of this ecoverse" />
+        <Header text="Pesho" tagText="Online" />
       </Section>
-      <Section details={<DummyChatList />} gutters={{ root: true, avatar: false, content: false }}>
+      <Section
+        details={<span>Details</span>}
+        gutters={{ root: true, avatar: false, content: false }}
+        avatar={<RoomsWidget rooms={rooms} />}
+      >
         <DummyChat />
       </Section>
     </>
