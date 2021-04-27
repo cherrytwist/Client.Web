@@ -1,0 +1,9 @@
+query messages {
+    messages {
+      id
+      message
+      reciever
+      sender
+      timestamp
+    }
+  }

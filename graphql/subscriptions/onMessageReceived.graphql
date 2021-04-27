@@ -1,0 +1,9 @@
+subscription onMessageReceived {
+    messageReceived {
+      id
+      message
+      reciever
+      sender
+      timestamp
+    }
+  }
