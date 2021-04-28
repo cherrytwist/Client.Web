@@ -64,7 +64,7 @@ const RoomItem: FC<RoomProps> = ({ room, active = false, actions }) => {
 
   return (
     <div
-      className={clsx(styles.room, active ? 'active' : '')}
+      className={clsx(styles.room, active && 'active')}
       onClick={() => {
         actions.onSelect(room);
       }}
@@ -73,7 +73,7 @@ const RoomItem: FC<RoomProps> = ({ room, active = false, actions }) => {
         <Avatar size="md" />
       </div>
       <div className={clsx(styles.roomContent)}>
-        <span>{room.identification.id}</span>
+        <span>{room.metadata.name || room.identification.id}</span>
       </div>
     </div>
   );

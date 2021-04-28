@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { Fade } from 'react-bootstrap';
 import { useResizeDetector } from 'react-resize-detector';
-import { ChatWindow } from '../components/Chat/ChatWindow';
+import { ChatWindow, ChatWindowProps } from '../components/Chat/ChatWindow';
 import MessageInput from '../components/Chat/MessageInput';
 import RoomDetails from '../components/Chat/RoomDetails';
 import RoomsWidget, { Room, RoomsWidgetProps } from '../components/Chat/RoomsWidget';
@@ -14,6 +14,7 @@ import { useMessagesQuery, useRoomQuery, useRoomsQuery } from '../generated/grap
 import { MESSAGE_SUBSCRIPTION } from '../graphql/message';
 import { useUpdateNavigation } from '../hooks/useNavigation';
 import { createStyles } from '../hooks/useTheme';
+import { useUserContext } from '../hooks/useUserContext';
 import { OnMessageReceivedSubscription } from '../types/graphql-schema';
 import { PageProps } from './common';
 // const date = new Date();
@@ -316,6 +317,14 @@ const paths = {
 //   { name: 'Mr. Smith', type: 'user' },
 // ];
 
+const tempSenderMap = {
+  '12': 'Nikola',
+  '13': 'Nikola v2',
+  '14': 'Nikola v3',
+  '15': 'Nikola v4',
+  '16': 'Nikola v5',
+};
+
 export const Messages: FC<PageProps> = () => {
   useUpdateNavigation(paths);
 
@@ -324,9 +333,14 @@ export const Messages: FC<PageProps> = () => {
 
   const { data: _rooms, loading: _roomsLoading } = useRoomsQuery();
 
-  const rooms = useMemo<Room[]>(() => (_rooms?.me.rooms || []).map(r => ({ identification: r as any, metadata: {} })), [
-    _rooms?.me.rooms,
-  ]);
+  const rooms = useMemo<Room[]>(
+    () =>
+      (_rooms?.me.rooms || []).map(r => ({
+        identification: r as any,
+        metadata: { name: tempSenderMap[r.receiverID || 'unknown'] },
+      })),
+    [_rooms?.me.rooms]
+  );
 
   useEffect(() => {
     setRoom(x => x || rooms[0] || null);
@@ -336,21 +350,18 @@ export const Messages: FC<PageProps> = () => {
     return <Loading text={'Loading rooms'} />;
   }
 
-  return <RoomMessages entities={{ rooms, selected: room }} actions={{ onSelect: setRoom }} />;
+  return (
+    <RoomMessages entities={{ rooms, selected: room, senderMap: tempSenderMap }} actions={{ onSelect: setRoom }} />
+  );
 };
 
-interface RoomMessageProps extends RoomsWidgetProps {}
-
-const tempSenderMap = {
-  '12': 'Nikola',
-  '13': 'Nikola v2',
-  '14': 'Nikola v3',
-  '15': 'Nikola v4',
-  '16': 'Nikola v5',
-};
-
+interface RoomMessageProps {
+  entities: RoomsWidgetProps['entities'] & Pick<ChatWindowProps['entities'], 'senderMap'>;
+  actions: RoomsWidgetProps['actions'];
+}
 export const RoomMessages: FC<RoomMessageProps> = ({ entities, actions }) => {
-  const { selected } = entities;
+  const { selected, senderMap } = entities;
+  const { user } = useUserContext();
   const { data: _room, loading: _roomLoading } = useRoomQuery({ variables: { id: selected.identification.id } });
 
   const messages = useMemo(() => _room?.me.room?.messages || [], [_room?.me.room?.messages]);
@@ -369,7 +380,7 @@ export const RoomMessages: FC<RoomMessageProps> = ({ entities, actions }) => {
         {/* The magic numbers here (70px => 10 margin for the input + the input height)*/}
         <div style={{ display: 'flex', overflow: 'auto', height: 'calc(100% - 70px)' }}>
           <ChatWindow
-            entities={{ messages: messages, senderMap: tempSenderMap, senderId: '12' }}
+            entities={{ messages: messages, senderMap, senderId: user?.user.id || 'unknown' }}
             loading={{ messages: _roomLoading }}
           />
         </div>
