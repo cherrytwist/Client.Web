@@ -166,6 +166,47 @@ export type ChallengeTemplate = {
   name: Scalars['String'];
 };
 
+export type CommunicationMessageResult = {
+  __typename?: 'CommunicationMessageResult';
+  /** The message being sent */
+  message: Scalars['String'];
+  /** The sender email */
+  sender: Scalars['String'];
+  /** The server timestamp in UTC */
+  timestamp: Scalars['Float'];
+};
+
+export type CommunicationRoomDetailsResult = {
+  __typename?: 'CommunicationRoomDetailsResult';
+  /** The identifier of the room */
+  id: Scalars['String'];
+  /** Indicates whether this is a DM room */
+  isDirect: Scalars['Boolean'];
+  /** The message being sent */
+  messages: Array<CommunicationMessageResult>;
+  /** The recepient userID */
+  receiverID?: Maybe<Scalars['String']>;
+};
+
+export type CommunicationRoomResult = {
+  __typename?: 'CommunicationRoomResult';
+  /** The identifier of the room */
+  id: Scalars['String'];
+  /** Indicates whether this is a DM room */
+  isDirect: Scalars['Boolean'];
+  /** The recepient userID */
+  receiverID?: Maybe<Scalars['String']>;
+};
+
+export type CommunicationSendMessageInput = {
+  /** The content of the message */
+  message: Scalars['String'];
+  /** The user ID of the receiver if attempting to direct message someone */
+  receiverID: Scalars['ID'];
+  /** The identifier of the room */
+  roomID?: Maybe<Scalars['String']>;
+};
+
 export type Community = {
   __typename?: 'Community';
   /** Application available for this community. */
@@ -604,6 +645,8 @@ export type Mutation = {
   eventOnOpportunity: Opportunity;
   /** Trigger an event on the Project. */
   eventOnProject: Project;
+  /** Sends a message on the specified User`s behalf and returns the room id */
+  message: Scalars['String'];
   /** Remove an organisation as a lead for the Challenge. */
   removeChallengeLead: Challenge;
   /** Removes the focal point for the specified User Group. */
@@ -786,6 +829,10 @@ export type MutationEventOnOpportunityArgs = {
 
 export type MutationEventOnProjectArgs = {
   projectEventData: ProjectEventInput;
+};
+
+export type MutationMessageArgs = {
+  msgData: CommunicationSendMessageInput;
 };
 
 export type MutationRemoveChallengeLeadArgs = {
@@ -1243,6 +1290,14 @@ export type User = {
   phone: Scalars['String'];
   /** The profile for this user */
   profile?: Maybe<Profile>;
+  /** An overview of the rooms this user is a member of */
+  room?: Maybe<CommunicationRoomDetailsResult>;
+  /** An overview of the rooms this user is a member of */
+  rooms?: Maybe<Array<CommunicationRoomResult>>;
+};
+
+export type UserRoomArgs = {
+  roomID: Scalars['String'];
 };
 
 export type UserGroup = {
@@ -2169,6 +2224,40 @@ export type RelationsQuery = { __typename?: 'Query' } & {
         >;
       };
     };
+};
+
+export type RoomQueryVariables = Exact<{
+  id: Scalars['String'];
+}>;
+
+export type RoomQuery = { __typename?: 'Query' } & {
+  me: { __typename?: 'User' } & {
+    room?: Maybe<
+      { __typename?: 'CommunicationRoomDetailsResult' } & Pick<
+        CommunicationRoomDetailsResult,
+        'id' | 'isDirect' | 'receiverID'
+      > & {
+          messages: Array<
+            { __typename?: 'CommunicationMessageResult' } & Pick<
+              CommunicationMessageResult,
+              'message' | 'sender' | 'timestamp'
+            >
+          >;
+        }
+    >;
+  };
+};
+
+export type RoomsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type RoomsQuery = { __typename?: 'Query' } & {
+  me: { __typename?: 'User' } & {
+    rooms?: Maybe<
+      Array<
+        { __typename?: 'CommunicationRoomResult' } & Pick<CommunicationRoomResult, 'id' | 'isDirect' | 'receiverID'>
+      >
+    >;
+  };
 };
 
 export type SearchQueryVariables = Exact<{

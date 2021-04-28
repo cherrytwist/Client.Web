@@ -1,0 +1,14 @@
+query room($id: String!) {
+  me {
+    room(roomID: $id) {
+      id
+      isDirect
+      receiverID
+      messages {
+        message
+        sender
+        timestamp
+      }
+    }
+  }
+}

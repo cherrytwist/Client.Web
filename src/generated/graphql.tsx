@@ -3872,6 +3872,92 @@ export function useRelationsLazyQuery(
 export type RelationsQueryHookResult = ReturnType<typeof useRelationsQuery>;
 export type RelationsLazyQueryHookResult = ReturnType<typeof useRelationsLazyQuery>;
 export type RelationsQueryResult = Apollo.QueryResult<SchemaTypes.RelationsQuery, SchemaTypes.RelationsQueryVariables>;
+export const RoomDocument = gql`
+  query room($id: String!) {
+    me {
+      room(roomID: $id) {
+        id
+        isDirect
+        receiverID
+        messages {
+          message
+          sender
+          timestamp
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useRoomQuery__
+ *
+ * To run a query within a React component, call `useRoomQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRoomQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRoomQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRoomQuery(
+  baseOptions: Apollo.QueryHookOptions<SchemaTypes.RoomQuery, SchemaTypes.RoomQueryVariables>
+) {
+  return Apollo.useQuery<SchemaTypes.RoomQuery, SchemaTypes.RoomQueryVariables>(RoomDocument, baseOptions);
+}
+export function useRoomLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<SchemaTypes.RoomQuery, SchemaTypes.RoomQueryVariables>
+) {
+  return Apollo.useLazyQuery<SchemaTypes.RoomQuery, SchemaTypes.RoomQueryVariables>(RoomDocument, baseOptions);
+}
+export type RoomQueryHookResult = ReturnType<typeof useRoomQuery>;
+export type RoomLazyQueryHookResult = ReturnType<typeof useRoomLazyQuery>;
+export type RoomQueryResult = Apollo.QueryResult<SchemaTypes.RoomQuery, SchemaTypes.RoomQueryVariables>;
+export const RoomsDocument = gql`
+  query rooms {
+    me {
+      rooms {
+        id
+        isDirect
+        receiverID
+      }
+    }
+  }
+`;
+
+/**
+ * __useRoomsQuery__
+ *
+ * To run a query within a React component, call `useRoomsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRoomsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRoomsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useRoomsQuery(
+  baseOptions?: Apollo.QueryHookOptions<SchemaTypes.RoomsQuery, SchemaTypes.RoomsQueryVariables>
+) {
+  return Apollo.useQuery<SchemaTypes.RoomsQuery, SchemaTypes.RoomsQueryVariables>(RoomsDocument, baseOptions);
+}
+export function useRoomsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<SchemaTypes.RoomsQuery, SchemaTypes.RoomsQueryVariables>
+) {
+  return Apollo.useLazyQuery<SchemaTypes.RoomsQuery, SchemaTypes.RoomsQueryVariables>(RoomsDocument, baseOptions);
+}
+export type RoomsQueryHookResult = ReturnType<typeof useRoomsQuery>;
+export type RoomsLazyQueryHookResult = ReturnType<typeof useRoomsLazyQuery>;
+export type RoomsQueryResult = Apollo.QueryResult<SchemaTypes.RoomsQuery, SchemaTypes.RoomsQueryVariables>;
 export const SearchDocument = gql`
   query search($searchData: SearchInput!) {
     search(searchData: $searchData) {

@@ -1,16 +1,16 @@
 import clsx from 'clsx';
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useEffect, useRef } from 'react';
+import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { Fade } from 'react-bootstrap';
 import { useResizeDetector } from 'react-resize-detector';
 import { ChatWindow } from '../components/Chat/ChatWindow';
 import MessageInput from '../components/Chat/MessageInput';
 import RoomDetails from '../components/Chat/RoomDetails';
-import { Room } from '../components/Chat/RoomList';
-import RoomsWidget from '../components/Chat/RoomsWidget';
+import RoomsWidget, { Room, RoomsWidgetProps } from '../components/Chat/RoomsWidget';
 import Card from '../components/core/Card';
+import Loading from '../components/core/Loading';
 import Typography from '../components/core/Typography';
-import { useMessagesQuery } from '../generated/graphql';
+import { useMessagesQuery, useRoomQuery, useRoomsQuery } from '../generated/graphql';
 import { MESSAGE_SUBSCRIPTION } from '../graphql/message';
 import { useUpdateNavigation } from '../hooks/useNavigation';
 import { createStyles } from '../hooks/useTheme';
@@ -307,17 +307,55 @@ const paths = {
   currentPaths: [],
 };
 
-const rooms: Room[] = [
-  { name: 'Challenge', type: 'room' },
-  { name: 'Opportunity', type: 'room' },
-  { name: 'Organization', type: 'room' },
-  { name: 'Neo', type: 'user' },
-  { name: 'Chris P. Bacon', type: 'user' },
-  { name: 'Mr. Smith', type: 'user' },
-];
+// const rooms: Room[] = [
+//   { name: 'Challenge', type: 'room' },
+//   { name: 'Opportunity', type: 'room' },
+//   { name: 'Organization', type: 'room' },
+//   { name: 'Neo', type: 'user' },
+//   { name: 'Chris P. Bacon', type: 'user' },
+//   { name: 'Mr. Smith', type: 'user' },
+// ];
 
 export const Messages: FC<PageProps> = () => {
   useUpdateNavigation(paths);
+
+  //state
+  const [room, setRoom] = useState<Room | null>(null);
+
+  const { data: _rooms, loading: _roomsLoading } = useRoomsQuery();
+
+  const rooms = useMemo<Room[]>(() => (_rooms?.me.rooms || []).map(r => ({ identification: r as any, metadata: {} })), [
+    _rooms?.me.rooms,
+  ]);
+
+  useEffect(() => {
+    setRoom(x => x || rooms[0] || null);
+  }, [setRoom, rooms]);
+
+  if (_roomsLoading || !_rooms || !room) {
+    return <Loading text={'Loading rooms'} />;
+  }
+
+  return <RoomMessages entities={{ rooms, selected: room }} actions={{ onSelect: setRoom }} />;
+};
+
+interface RoomMessageProps extends RoomsWidgetProps {}
+
+const tempSenderMap = {
+  '12': 'Nikola',
+  '13': 'Nikola v2',
+  '14': 'Nikola v3',
+  '15': 'Nikola v4',
+  '16': 'Nikola v5',
+};
+
+export const RoomMessages: FC<RoomMessageProps> = ({ entities, actions }) => {
+  const { selected } = entities;
+  const { data: _room, loading: _roomLoading } = useRoomQuery({ variables: { id: selected.identification.id } });
+
+  const messages = useMemo(() => _room?.me.room?.messages || [], [_room?.me.room?.messages]);
+
+  // visuals
   const styles = useMessageStyles();
   const { ref: refChat, height } = useResizeDetector();
 
@@ -325,19 +363,22 @@ export const Messages: FC<PageProps> = () => {
     <div className={styles.communicationContainer}>
       <div ref={refChat} style={{ position: 'absolute', inset: 0, zIndex: -1 }} />
       <div style={{ display: 'flex', flexDirection: 'column', width: 280, height: height }}>
-        <RoomsWidget rooms={rooms} />
+        <RoomsWidget entities={entities} actions={actions} />
       </div>
       <div style={{ display: 'flex', flexGrow: 1, overflow: 'auto', height: height, flexDirection: 'column' }}>
         {/* The magic numbers here (70px => 10 margin for the input + the input height)*/}
         <div style={{ display: 'flex', overflow: 'auto', height: 'calc(100% - 70px)' }}>
-          <ChatWindow />
+          <ChatWindow
+            entities={{ messages: messages, senderMap: tempSenderMap, senderId: '12' }}
+            loading={{ messages: _roomLoading }}
+          />
         </div>
         <div style={{ marginTop: 10 }}>
           <MessageInput />
         </div>
       </div>
       <div style={{ width: 320 }}>
-        <RoomDetails room={rooms[0]} />
+        <RoomDetails entities={{ room: selected }} loading={{ room: _roomLoading }} />
       </div>
     </div>
   );

@@ -1,0 +1,9 @@
+query rooms {
+  me {
+    rooms {
+      id
+      isDirect
+      receiverID
+    }
+  }
+}

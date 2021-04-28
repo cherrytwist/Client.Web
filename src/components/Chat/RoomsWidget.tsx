@@ -2,11 +2,17 @@ import clsx from 'clsx';
 import React, { FC, useMemo, useState } from 'react';
 import { Nav, Tab, Tabs } from 'react-bootstrap';
 import { createStyles } from '../../hooks/useTheme';
+import { CommunicationRoomResult } from '../../types/graphql-schema';
 import Avatar from '../core/Avatar';
-import { Room } from './RoomList';
 
-interface RoomsWidgetProps {
-  rooms: Room[];
+export type Room = { identification: CommunicationRoomResult; metadata: any };
+
+export interface RoomsWidgetProps {
+  entities: {
+    selected: Room;
+    rooms: Room[];
+  };
+  actions: RoomProps['actions'];
 }
 
 const useRoomStyle = createStyles(theme => ({
@@ -20,6 +26,7 @@ const useRoomStyle = createStyles(theme => ({
     border: `1px solid ${theme.palette.background}`,
     borderRadius: theme.shape.borderRadius,
     cursor: 'pointer',
+    overflow: 'hidden',
 
     '&:hover': {
       background: theme.palette.neutralLight,
@@ -46,19 +53,27 @@ const useRoomStyle = createStyles(theme => ({
 
 interface RoomProps {
   room: Room;
+  actions: {
+    onSelect: (room: Room) => void;
+  };
   active?: boolean;
 }
 
-const RoomItem: FC<RoomProps> = ({ room, active = false }) => {
+const RoomItem: FC<RoomProps> = ({ room, active = false, actions }) => {
   const styles = useRoomStyle();
 
   return (
-    <div className={clsx(styles.room, active ? 'active' : '')}>
+    <div
+      className={clsx(styles.room, active ? 'active' : '')}
+      onClick={() => {
+        actions.onSelect(room);
+      }}
+    >
       <div className={clsx(styles.roomAvatar, 'mr-2')}>
         <Avatar size="md" />
       </div>
       <div className={clsx(styles.roomContent)}>
-        <span>{room.name}</span>
+        <span>{room.identification.id}</span>
       </div>
     </div>
   );
@@ -67,10 +82,12 @@ const RoomItem: FC<RoomProps> = ({ room, active = false }) => {
 const communityTab = 'community';
 const directMessagesTab = 'dms';
 
-export const RoomsWidget: FC<RoomsWidgetProps> = ({ rooms }) => {
+export const RoomsWidget: FC<RoomsWidgetProps> = ({ entities, actions }) => {
   const [activeTab, setActiveTab] = useState(directMessagesTab);
-  const roomList = useMemo(() => rooms.filter(x => x.type === 'room'), rooms);
-  const userList = useMemo(() => rooms.filter(x => x.type === 'user'), rooms);
+  const { rooms, selected } = entities;
+
+  const roomList = useMemo(() => rooms.filter(x => x.identification.isDirect === false), rooms);
+  const userList = useMemo(() => rooms.filter(x => x.identification.isDirect && x.identification.receiverID), rooms);
 
   const styles = useRoomStyle();
   return (
@@ -85,7 +102,7 @@ export const RoomsWidget: FC<RoomsWidgetProps> = ({ rooms }) => {
         <div className={styles.list}>
           {roomList.map((x, i) => (
             <Nav.Item key={i}>
-              <RoomItem room={x} active={i === 1} />
+              <RoomItem room={x} active={x === selected} actions={actions} />
             </Nav.Item>
           ))}
           {roomList.length === 0 && <span>{"It's lonely here"}</span>}
@@ -95,7 +112,7 @@ export const RoomsWidget: FC<RoomsWidgetProps> = ({ rooms }) => {
         <div className={styles.list}>
           {userList.map((x, i) => (
             <Nav.Item key={i}>
-              <RoomItem room={x} />
+              <RoomItem room={x} active={x === selected} actions={actions} />
             </Nav.Item>
           ))}
         </div>
