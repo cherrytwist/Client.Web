@@ -324,7 +324,7 @@ export const Messages: FC<PageProps> = () => {
   return (
     <div className={styles.communicationContainer}>
       <div ref={refChat} style={{ position: 'absolute', inset: 0, zIndex: -1 }} />
-      <div style={{ display: 'flex', flexDirection: 'column', width: 240, height: height }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: 280, height: height }}>
         <RoomsWidget rooms={rooms} />
       </div>
       <div style={{ display: 'flex', flexGrow: 1, overflow: 'auto', height: height, flexDirection: 'column' }}>

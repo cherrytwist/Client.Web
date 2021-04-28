@@ -68,7 +68,7 @@ const communityTab = 'community';
 const directMessagesTab = 'dms';
 
 export const RoomsWidget: FC<RoomsWidgetProps> = ({ rooms }) => {
-  const [activeTab, setActiveTab] = useState(communityTab);
+  const [activeTab, setActiveTab] = useState(directMessagesTab);
   const roomList = useMemo(() => rooms.filter(x => x.type === 'room'), rooms);
   const userList = useMemo(() => rooms.filter(x => x.type === 'user'), rooms);
 
@@ -81,7 +81,7 @@ export const RoomsWidget: FC<RoomsWidgetProps> = ({ rooms }) => {
         k && setActiveTab(k);
       }}
     >
-      <Tab eventKey={communityTab} title={'Communities'}>
+      <Tab eventKey={communityTab} title={'Communities'} disabled>
         <div className={styles.list}>
           {roomList.map((x, i) => (
             <Nav.Item key={i}>
