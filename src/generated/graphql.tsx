@@ -1101,6 +1101,47 @@ export type RemoveUserFromGroupMutationOptions = Apollo.BaseMutationOptions<
   SchemaTypes.RemoveUserFromGroupMutation,
   SchemaTypes.RemoveUserFromGroupMutationVariables
 >;
+export const SendMessageDocument = gql`
+  mutation sendMessage($msgData: CommunicationSendMessageInput!) {
+    message(msgData: $msgData)
+  }
+`;
+export type SendMessageMutationFn = Apollo.MutationFunction<
+  SchemaTypes.SendMessageMutation,
+  SchemaTypes.SendMessageMutationVariables
+>;
+
+/**
+ * __useSendMessageMutation__
+ *
+ * To run a mutation, you first call `useSendMessageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSendMessageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sendMessageMutation, { data, loading, error }] = useSendMessageMutation({
+ *   variables: {
+ *      msgData: // value for 'msgData'
+ *   },
+ * });
+ */
+export function useSendMessageMutation(
+  baseOptions?: Apollo.MutationHookOptions<SchemaTypes.SendMessageMutation, SchemaTypes.SendMessageMutationVariables>
+) {
+  return Apollo.useMutation<SchemaTypes.SendMessageMutation, SchemaTypes.SendMessageMutationVariables>(
+    SendMessageDocument,
+    baseOptions
+  );
+}
+export type SendMessageMutationHookResult = ReturnType<typeof useSendMessageMutation>;
+export type SendMessageMutationResult = Apollo.MutationResult<SchemaTypes.SendMessageMutation>;
+export type SendMessageMutationOptions = Apollo.BaseMutationOptions<
+  SchemaTypes.SendMessageMutation,
+  SchemaTypes.SendMessageMutationVariables
+>;
 export const UpdateActorDocument = gql`
   mutation updateActor($input: UpdateActorInput!) {
     updateActor(actorData: $input) {

@@ -1,8 +1,12 @@
 import React, { FC, useState } from 'react';
 import { createStyles } from '../../hooks/useTheme';
-import TextInput from '../core/TextInput';
+import { ModernTextInput } from '../core/TextInput';
 
-interface MessageInputProps {}
+interface MessageInputProps {
+  actions: {
+    onConfirm: (value: string) => boolean;
+  };
+}
 
 const useMessageInputStyle = createStyles(theme => ({
   container: {
@@ -15,13 +19,23 @@ const useMessageInputStyle = createStyles(theme => ({
   },
 }));
 
-export const MessageInput: FC<MessageInputProps> = () => {
+export const MessageInput: FC<MessageInputProps> = ({ actions }) => {
+  const { onConfirm } = actions;
   const [value, setValue] = useState('');
   const styles = useMessageInputStyle();
 
   return (
     <div className={styles.container}>
-      <TextInput value={value} onChange={e => setValue(e.currentTarget.value)} />
+      <ModernTextInput
+        value={value}
+        actions={{
+          onChange: e => setValue(e.currentTarget.value),
+          onEnterPressed: () => {
+            const result = onConfirm(value);
+            result && setValue('');
+          },
+        }}
+      />
     </div>
   );
 };

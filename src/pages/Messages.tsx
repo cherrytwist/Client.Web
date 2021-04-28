@@ -10,7 +10,7 @@ import RoomsWidget, { Room, RoomsWidgetProps } from '../components/Chat/RoomsWid
 import Card from '../components/core/Card';
 import Loading from '../components/core/Loading';
 import Typography from '../components/core/Typography';
-import { useMessagesQuery, useRoomQuery, useRoomsQuery } from '../generated/graphql';
+import { useMessagesQuery, useRoomQuery, useRoomsQuery, useSendMessageMutation } from '../generated/graphql';
 import { MESSAGE_SUBSCRIPTION } from '../graphql/message';
 import { useUpdateNavigation } from '../hooks/useNavigation';
 import { createStyles } from '../hooks/useTheme';
@@ -236,86 +236,9 @@ export const DummyChat: FC = () => {
   );
 };
 
-const useContactStyles = createStyles(theme => ({
-  contactContainer: {
-    height: '100%',
-  },
-  contact: {
-    padding: `${theme.shape.spacing(1)}px ${theme.shape.spacing(2)}px`,
-    marginBotton: theme.shape.spacing(1),
-    background: theme.palette.background,
-    cursor: 'pointer',
-
-    '&:hover': {
-      background: theme.palette.primary,
-      color: theme.palette.background,
-    },
-  },
-  divider: {
-    background: theme.palette.neutralLight,
-    height: 1,
-  },
-  active: {
-    borderLeft: `2px solid ${theme.palette.primary}`,
-    color: theme.palette.primary,
-
-    '& > h1': {
-      color: theme.palette.positive,
-    },
-
-    '&:hover': {
-      '& > h1': {
-        color: theme.palette.background,
-      },
-    },
-  },
-}));
-
-export const DummyChatList: FC = () => {
-  const styles = useContactStyles();
-  return (
-    <Card
-      bodyProps={{
-        classes: {
-          background: theme => theme.palette.neutralLight,
-          padding: theme => `${theme.shape.spacing(0.5)}px`,
-        },
-      }}
-    >
-      <div className={clsx(styles.contact, styles.active)}>
-        <Typography variant="h3" color="inherit" as="h3">
-          Cherrytwist
-        </Typography>
-        <Typography variant="caption" color="inherit" as="h1">
-          new messages
-        </Typography>
-      </div>
-      <div className={styles.divider}></div>
-      <div className={styles.contact}>
-        <Typography variant="h3" color="inherit">
-          Community
-        </Typography>
-        <Typography variant="caption" color="inherit" as="h1">
-          Work in progress
-        </Typography>
-      </div>
-      <div className={styles.divider}></div>
-    </Card>
-  );
-};
-
 const paths = {
   currentPaths: [],
 };
-
-// const rooms: Room[] = [
-//   { name: 'Challenge', type: 'room' },
-//   { name: 'Opportunity', type: 'room' },
-//   { name: 'Organization', type: 'room' },
-//   { name: 'Neo', type: 'user' },
-//   { name: 'Chris P. Bacon', type: 'user' },
-//   { name: 'Mr. Smith', type: 'user' },
-// ];
 
 const tempSenderMap = {
   '12': 'Nikola',
@@ -331,7 +254,18 @@ export const Messages: FC<PageProps> = () => {
   //state
   const [room, setRoom] = useState<Room | null>(null);
 
-  const { data: _rooms, loading: _roomsLoading } = useRoomsQuery();
+  const { data: _rooms, loading: _roomsLoading, refetch: refetchRooms } = useRoomsQuery();
+  // adding the send message here because we can initiate a conversation without the room context
+  const [sendMessage] = useSendMessageMutation({
+    onCompleted: data => {
+      console.log(data);
+      // refetch all rooms - def not the way, but good enough for a demo
+      refetchRooms();
+    },
+    onError: () => {
+      // handle errors
+    },
+  });
 
   const rooms = useMemo<Room[]>(
     () =>
@@ -351,13 +285,37 @@ export const Messages: FC<PageProps> = () => {
   }
 
   return (
-    <RoomMessages entities={{ rooms, selected: room, senderMap: tempSenderMap }} actions={{ onSelect: setRoom }} />
+    <RoomMessages
+      entities={{ rooms, selected: room, senderMap: tempSenderMap }}
+      actions={{
+        onSelect: setRoom,
+        onSendRequest: value => {
+          // basic validation
+          if (value && value !== '') {
+            sendMessage({
+              variables: {
+                msgData: {
+                  message: value,
+                  roomID: room.identification.id,
+                  receiverID: room.identification.receiverID || '',
+                },
+              },
+            });
+
+            return true;
+          }
+          return false;
+        },
+      }}
+    />
   );
 };
 
 interface RoomMessageProps {
   entities: RoomsWidgetProps['entities'] & Pick<ChatWindowProps['entities'], 'senderMap'>;
-  actions: RoomsWidgetProps['actions'];
+  actions: RoomsWidgetProps['actions'] & {
+    onSendRequest: (value: string) => boolean;
+  };
 }
 export const RoomMessages: FC<RoomMessageProps> = ({ entities, actions }) => {
   const { selected, senderMap } = entities;
@@ -385,7 +343,11 @@ export const RoomMessages: FC<RoomMessageProps> = ({ entities, actions }) => {
           />
         </div>
         <div style={{ marginTop: 10 }}>
-          <MessageInput />
+          <MessageInput
+            actions={{
+              onConfirm: actions.onSendRequest,
+            }}
+          />
         </div>
       </div>
       <div style={{ width: 320 }}>

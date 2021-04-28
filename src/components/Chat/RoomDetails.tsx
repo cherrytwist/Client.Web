@@ -28,7 +28,7 @@ export const RoomDetails: FC<RoomDetailsProps> = ({ entities, loading }) => {
 
   return (
     <div className={styles.container}>
-      <Typography variant="h4">{room.identification.receiverID}</Typography>
+      <Typography variant="h4">{room.metadata.name || room.identification.receiverID}</Typography>
     </div>
   );
 };

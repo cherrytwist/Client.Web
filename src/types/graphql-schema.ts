@@ -1561,6 +1561,12 @@ export type RemoveUserFromGroupMutation = { __typename?: 'Mutation' } & {
     };
 };
 
+export type SendMessageMutationVariables = Exact<{
+  msgData: CommunicationSendMessageInput;
+}>;
+
+export type SendMessageMutation = { __typename?: 'Mutation' } & Pick<Mutation, 'message'>;
+
 export type UpdateActorMutationVariables = Exact<{
   input: UpdateActorInput;
 }>;

@@ -95,12 +95,14 @@ interface TextProps extends Record<string, unknown> {
 
 interface TextInputProps extends TextProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onEnterPressed?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
 const TextInput: FC<TextInputProps> = ({
   className,
   classes = {},
   onChange,
+  onEnterPressed,
   value,
   label,
   variant = 'primary',
@@ -126,11 +128,28 @@ const TextInput: FC<TextInputProps> = ({
         disabled={disabled}
         className={clsx(styles.input, inset && 'inset', small && 'small', 'ct-input', className)}
         onChange={onChange}
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            onEnterPressed && onEnterPressed(e);
+          }
+        }}
         value={value}
         {...rest}
       />
     </div>
   );
+};
+
+interface ModernTextInputProps extends TextProps {
+  actions: {
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onEnterPressed?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  };
+}
+
+export const ModernTextInput: FC<ModernTextInputProps> = props => {
+  const { actions, ...rest } = props;
+  return <TextInput {...rest} onChange={actions.onChange} onEnterPressed={actions.onEnterPressed} />;
 };
 
 interface TextAreaProps extends TextProps {

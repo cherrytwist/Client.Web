@@ -49,6 +49,19 @@ const useRoomStyle = createStyles(theme => ({
   roomClose: {
     display: 'none',
   },
+  tab: {
+    textAlign: 'center',
+    flexGrow: 1,
+    '&:hover': {
+      borderColor: 'transparent !important',
+    },
+    '&.active': {
+      // unfortunately
+      borderColor: 'transparent !important',
+      borderBottomColor: `${theme.palette.primary} !important`,
+      borderWidth: 2,
+    },
+  },
 }));
 
 interface RoomProps {
@@ -98,7 +111,7 @@ export const RoomsWidget: FC<RoomsWidgetProps> = ({ entities, actions }) => {
         k && setActiveTab(k);
       }}
     >
-      <Tab eventKey={communityTab} title={'Communities'} disabled>
+      <Tab eventKey={communityTab} title={'Communities'} tabClassName={styles.tab}>
         <div className={styles.list}>
           {roomList.map((x, i) => (
             <Nav.Item key={i}>
@@ -108,7 +121,7 @@ export const RoomsWidget: FC<RoomsWidgetProps> = ({ entities, actions }) => {
           {roomList.length === 0 && <span>{"It's lonely here"}</span>}
         </div>
       </Tab>
-      <Tab eventKey={directMessagesTab} title={'Messages'}>
+      <Tab eventKey={directMessagesTab} title={'Messages'} tabClassName={styles.tab}>
         <div className={styles.list}>
           {userList.map((x, i) => (
             <Nav.Item key={i}>
