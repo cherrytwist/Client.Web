@@ -2,11 +2,13 @@ import clsx from 'clsx';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useEffect, useRef } from 'react';
 import { Fade } from 'react-bootstrap';
+import { useResizeDetector } from 'react-resize-detector';
 import { ChatWindow } from '../components/Chat/ChatWindow';
+import MessageInput from '../components/Chat/MessageInput';
+import RoomDetails from '../components/Chat/RoomDetails';
 import { Room } from '../components/Chat/RoomList';
 import RoomsWidget from '../components/Chat/RoomsWidget';
 import Card from '../components/core/Card';
-import Section, { Header } from '../components/core/Section';
 import Typography from '../components/core/Typography';
 import { useMessagesQuery } from '../generated/graphql';
 import { MESSAGE_SUBSCRIPTION } from '../graphql/message';
@@ -118,6 +120,13 @@ const useMessageStyles = createStyles(theme => ({
     maxHeight: 480,
     height: 480,
     overflowY: 'auto',
+  },
+  communicationContainer: {
+    position: 'relative',
+    overflow: 'hidden',
+    display: 'flex',
+    height: 'calc(100% - 40px)',
+    flexGrow: 1,
   },
 }));
 export const DummyChat: FC = () => {
@@ -309,19 +318,27 @@ const rooms: Room[] = [
 
 export const Messages: FC<PageProps> = () => {
   useUpdateNavigation(paths);
+  const styles = useMessageStyles();
+  const { ref: refChat, height } = useResizeDetector();
 
   return (
-    <>
-      <Section gutters={{ root: true, avatar: false, content: false }}>
-        <Header text="Pesho" tagText="Online" />
-      </Section>
-      <Section
-        details={<span>Details</span>}
-        gutters={{ root: true, avatar: false, content: false }}
-        avatar={<RoomsWidget rooms={rooms} />}
-      >
-        <ChatWindow />
-      </Section>
-    </>
+    <div className={styles.communicationContainer}>
+      <div ref={refChat} style={{ position: 'absolute', inset: 0 }} />
+      <div style={{ display: 'flex', flexDirection: 'column', width: 240, height: height }}>
+        <RoomsWidget rooms={rooms} />
+      </div>
+      <div style={{ display: 'flex', flexGrow: 1, overflow: 'auto', height: height, flexDirection: 'column' }}>
+        {/* The magic numbers here (70px => 10 margin for the input + the input height)*/}
+        <div style={{ display: 'flex', overflow: 'auto', height: 'calc(100% - 70px)' }}>
+          <ChatWindow />
+        </div>
+        <div style={{ marginTop: 10 }}>
+          <MessageInput />
+        </div>
+      </div>
+      <div style={{ width: 320 }}>
+        <RoomDetails room={rooms[0]} />
+      </div>
+    </div>
   );
 };

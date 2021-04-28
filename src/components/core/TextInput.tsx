@@ -85,7 +85,7 @@ interface TextProps extends Record<string, unknown> {
   className?: string;
   classes?: unknown;
   value: string;
-  label: string;
+  label?: string;
   variant?: 'neutral' | 'primary' | 'transparent';
   error?: boolean;
   inset?: boolean;

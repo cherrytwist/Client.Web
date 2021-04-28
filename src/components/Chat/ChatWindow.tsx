@@ -5,7 +5,6 @@ import { OnMessageReceivedDocument, useMessagesQuery } from '../../generated/gra
 import { createStyles } from '../../hooks/useTheme';
 import { OnMessageReceivedSubscription } from '../../types/graphql-schema';
 import Card from '../core/Card';
-import TextInput from '../core/TextInput';
 import Typography from '../core/Typography';
 
 const useMessageStyles = createStyles(theme => ({
@@ -63,8 +62,7 @@ const useMessageStyles = createStyles(theme => ({
     textAlign: 'right',
   },
   container: {
-    maxHeight: 480,
-    height: 480,
+    height: '100%',
     overflowY: 'auto',
   },
 }));
@@ -94,43 +92,40 @@ export const ChatWindow: FC = () => {
   }, [data]);
 
   return (
-    <>
-      <Card
-        bodyProps={{
-          classes: {
-            background: theme => theme.palette.neutralLight,
-          },
-          className: clsx(styles.container),
-        }}
-      >
-        <div>
-          {data?.messages.map((x, i) => (
-            <Fade key={i} in appear>
+    <Card
+      bodyProps={{
+        classes: {
+          background: theme => theme.palette.neutralLight,
+        },
+        className: clsx(styles.container),
+      }}
+    >
+      <div>
+        {data?.messages.map((x, i) => (
+          <Fade key={i} in appear>
+            <div
+              className={clsx(
+                x.sender === 'acho@acho.com' ? styles.containerLeft : styles.containerRight,
+                styles.messageContainer
+              )}
+            >
               <div
-                className={clsx(
-                  x.sender === 'acho@acho.com' ? styles.containerLeft : styles.containerRight,
-                  styles.messageContainer
-                )}
+                style={{ display: 'flex' }}
+                className={clsx(x.sender === 'acho@acho.com' ? styles.left : styles.right)}
               >
-                <div
-                  style={{ display: 'flex' }}
-                  className={clsx(x.sender === 'acho@acho.com' ? styles.left : styles.right)}
-                >
-                  <span className={clsx(styles.message, x.sender === 'acho@acho.com' ? 'me' : 'you')}>{x.message}</span>
-                </div>
-                <Typography
-                  className={clsx(x.sender === 'acho@acho.com' ? styles.textLeft : styles.textRight)}
-                  variant="caption"
-                >
-                  {new Date(x.timestamp).toLocaleTimeString()}
-                </Typography>
+                <span className={clsx(styles.message, x.sender === 'acho@acho.com' ? 'me' : 'you')}>{x.message}</span>
               </div>
-            </Fade>
-          ))}
-          <div ref={bottomRef}></div>
-        </div>
-      </Card>
-      <TextInput label={'replay'} value={''} onChange={() => console.log('change')} />
-    </>
+              <Typography
+                className={clsx(x.sender === 'acho@acho.com' ? styles.textLeft : styles.textRight)}
+                variant="caption"
+              >
+                {new Date(x.timestamp).toLocaleTimeString()}
+              </Typography>
+            </div>
+          </Fade>
+        ))}
+        <div ref={bottomRef}></div>
+      </div>
+    </Card>
   );
 };
