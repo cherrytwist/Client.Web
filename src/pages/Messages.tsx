@@ -268,7 +268,7 @@ export const Messages: FC<PageProps> = () => {
         identification: r as any,
         metadata: { name: senders[r.receiverID || 'unknown'] },
       })),
-    [_rooms?.me.rooms]
+    [_rooms?.me.rooms, senders]
   );
 
   useEffect(() => {

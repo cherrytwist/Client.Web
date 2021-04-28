@@ -1,4 +1,5 @@
 import React, { FC, useMemo } from 'react';
+import Loading from '../components/core/Loading';
 import { useMyCommunitiesQuery } from '../generated/graphql';
 import { Community } from '../types/graphql-schema';
 
@@ -15,7 +16,7 @@ const communicationContext = React.createContext<CommunicationContextProps>({
 interface CommunicationProviderProps {}
 
 const CommunicationProvider: FC<CommunicationProviderProps> = ({ children }) => {
-  const { data } = useMyCommunitiesQuery();
+  const { data, loading } = useMyCommunitiesQuery();
 
   const senders = useMemo(() => {
     return (
@@ -23,7 +24,7 @@ const CommunicationProvider: FC<CommunicationProviderProps> = ({ children }) => 
         const result = curr.members?.reduce((s, member) => {
           return {
             ...s,
-            [member.id]: member.name,
+            [`${member.id}`]: member.name,
           };
         }, {} as Record<string, string>);
 
@@ -34,6 +35,10 @@ const CommunicationProvider: FC<CommunicationProviderProps> = ({ children }) => 
       }, {} as Record<string, string>) || {}
     );
   }, [data]);
+
+  if (loading) {
+    return <Loading text={'Loading community details'} />;
+  }
 
   return (
     <communicationContext.Provider
