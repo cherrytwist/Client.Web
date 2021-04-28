@@ -12,6 +12,7 @@ import Loading from '../components/core/Loading';
 import Typography from '../components/core/Typography';
 import { useMessagesQuery, useRoomQuery, useRoomsQuery, useSendMessageMutation } from '../generated/graphql';
 import { MESSAGE_SUBSCRIPTION } from '../graphql/message';
+import { useCommunicationContext } from '../hooks/useCommunicationContext';
 import { useUpdateNavigation } from '../hooks/useNavigation';
 import { createStyles } from '../hooks/useTheme';
 import { useUserContext } from '../hooks/useUserContext';
@@ -240,17 +241,11 @@ const paths = {
   currentPaths: [],
 };
 
-const tempSenderMap = {
-  '12': 'Nikola',
-  '13': 'Nikola v2',
-  '14': 'Nikola v3',
-  '15': 'Nikola v4',
-  '16': 'Nikola v5',
-};
-
 export const Messages: FC<PageProps> = () => {
   useUpdateNavigation(paths);
-
+  const {
+    context: { senders },
+  } = useCommunicationContext();
   //state
   const [room, setRoom] = useState<Room | null>(null);
 
@@ -271,7 +266,7 @@ export const Messages: FC<PageProps> = () => {
     () =>
       (_rooms?.me.rooms || []).map(r => ({
         identification: r as any,
-        metadata: { name: tempSenderMap[r.receiverID || 'unknown'] },
+        metadata: { name: senders[r.receiverID || 'unknown'] },
       })),
     [_rooms?.me.rooms]
   );
@@ -286,7 +281,7 @@ export const Messages: FC<PageProps> = () => {
 
   return (
     <RoomMessages
-      entities={{ rooms, selected: room, senderMap: tempSenderMap }}
+      entities={{ rooms, selected: room, senderMap: senders }}
       actions={{
         onSelect: setRoom,
         onSendRequest: value => {
@@ -317,6 +312,9 @@ interface RoomMessageProps {
     onSendRequest: (value: string) => boolean;
   };
 }
+
+interface RoomMessageProps extends RoomsWidgetProps {}
+
 export const RoomMessages: FC<RoomMessageProps> = ({ entities, actions }) => {
   const { selected, senderMap } = entities;
   const { user } = useUserContext();

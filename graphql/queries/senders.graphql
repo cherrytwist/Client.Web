@@ -1,0 +1,6 @@
+query senders($ids: [String!]!) {
+  usersById(IDs: $ids) {
+    id
+    name
+  }
+}

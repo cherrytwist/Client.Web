@@ -4108,6 +4108,44 @@ export function useSearchLazyQuery(
 export type SearchQueryHookResult = ReturnType<typeof useSearchQuery>;
 export type SearchLazyQueryHookResult = ReturnType<typeof useSearchLazyQuery>;
 export type SearchQueryResult = Apollo.QueryResult<SchemaTypes.SearchQuery, SchemaTypes.SearchQueryVariables>;
+export const SendersDocument = gql`
+  query senders($ids: [String!]!) {
+    usersById(IDs: $ids) {
+      id
+      name
+    }
+  }
+`;
+
+/**
+ * __useSendersQuery__
+ *
+ * To run a query within a React component, call `useSendersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSendersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSendersQuery({
+ *   variables: {
+ *      ids: // value for 'ids'
+ *   },
+ * });
+ */
+export function useSendersQuery(
+  baseOptions: Apollo.QueryHookOptions<SchemaTypes.SendersQuery, SchemaTypes.SendersQueryVariables>
+) {
+  return Apollo.useQuery<SchemaTypes.SendersQuery, SchemaTypes.SendersQueryVariables>(SendersDocument, baseOptions);
+}
+export function useSendersLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<SchemaTypes.SendersQuery, SchemaTypes.SendersQueryVariables>
+) {
+  return Apollo.useLazyQuery<SchemaTypes.SendersQuery, SchemaTypes.SendersQueryVariables>(SendersDocument, baseOptions);
+}
+export type SendersQueryHookResult = ReturnType<typeof useSendersQuery>;
+export type SendersLazyQueryHookResult = ReturnType<typeof useSendersLazyQuery>;
+export type SendersQueryResult = Apollo.QueryResult<SchemaTypes.SendersQuery, SchemaTypes.SendersQueryVariables>;
 export const ServerMetadataDocument = gql`
   query serverMetadata {
     metadata {

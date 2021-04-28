@@ -2298,6 +2298,14 @@ export type SearchQuery = { __typename?: 'Query' } & {
   >;
 };
 
+export type SendersQueryVariables = Exact<{
+  ids: Array<Scalars['String']> | Scalars['String'];
+}>;
+
+export type SendersQuery = { __typename?: 'Query' } & {
+  usersById: Array<{ __typename?: 'User' } & Pick<User, 'id' | 'name'>>;
+};
+
 export type ServerMetadataQueryVariables = Exact<{ [key: string]: never }>;
 
 export type ServerMetadataQuery = { __typename?: 'Query' } & {
