@@ -139,7 +139,6 @@ const OppChallPage: FC<Props> = ({ paths, mode, title }) => {
     const updateData = { name, state: '', context: contextWithUpdatedRefs };
 
     if (ProfileSubmitMode) {
-      debugger;
       switch (mode) {
         case ProfileSubmitMode.createChallenge:
           createChallenge({

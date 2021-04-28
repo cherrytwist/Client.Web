@@ -1909,6 +1909,22 @@ export type MessagesQuery = { __typename?: 'Query' } & {
   messages: Array<{ __typename?: 'Message' } & Pick<Message, 'id' | 'message' | 'reciever' | 'sender' | 'timestamp'>>;
 };
 
+export type MyCommunitiesQueryVariables = Exact<{ [key: string]: never }>;
+
+export type MyCommunitiesQuery = { __typename?: 'Query' } & {
+  me: { __typename?: 'User' } & {
+    memberof?: Maybe<
+      { __typename?: 'MemberOf' } & {
+        communities: Array<
+          { __typename?: 'Community' } & Pick<Community, 'id' | 'name' | 'type'> & {
+              members?: Maybe<Array<{ __typename?: 'User' } & UserDetailsFragment>>;
+            }
+        >;
+      }
+    >;
+  };
+};
+
 export type OpportunitiesQueryVariables = Exact<{
   id: Scalars['String'];
 }>;
@@ -2237,33 +2253,33 @@ export type RoomQueryVariables = Exact<{
 }>;
 
 export type RoomQuery = { __typename?: 'Query' } & {
-  me: { __typename?: 'User' } & {
-    room?: Maybe<
-      { __typename?: 'CommunicationRoomDetailsResult' } & Pick<
-        CommunicationRoomDetailsResult,
-        'id' | 'isDirect' | 'receiverID'
-      > & {
-          messages: Array<
-            { __typename?: 'CommunicationMessageResult' } & Pick<
-              CommunicationMessageResult,
-              'message' | 'sender' | 'timestamp'
-            >
-          >;
-        }
-    >;
-  };
+  me: { __typename?: 'User' } & Pick<User, 'id'> & {
+      room?: Maybe<
+        { __typename?: 'CommunicationRoomDetailsResult' } & Pick<
+          CommunicationRoomDetailsResult,
+          'id' | 'isDirect' | 'receiverID'
+        > & {
+            messages: Array<
+              { __typename?: 'CommunicationMessageResult' } & Pick<
+                CommunicationMessageResult,
+                'message' | 'sender' | 'timestamp'
+              >
+            >;
+          }
+      >;
+    };
 };
 
 export type RoomsQueryVariables = Exact<{ [key: string]: never }>;
 
 export type RoomsQuery = { __typename?: 'Query' } & {
-  me: { __typename?: 'User' } & {
-    rooms?: Maybe<
-      Array<
-        { __typename?: 'CommunicationRoomResult' } & Pick<CommunicationRoomResult, 'id' | 'isDirect' | 'receiverID'>
-      >
-    >;
-  };
+  me: { __typename?: 'User' } & Pick<User, 'id'> & {
+      rooms?: Maybe<
+        Array<
+          { __typename?: 'CommunicationRoomResult' } & Pick<CommunicationRoomResult, 'id' | 'isDirect' | 'receiverID'>
+        >
+      >;
+    };
 };
 
 export type SearchQueryVariables = Exact<{

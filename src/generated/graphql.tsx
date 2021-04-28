@@ -2646,6 +2646,61 @@ export function useMessagesLazyQuery(
 export type MessagesQueryHookResult = ReturnType<typeof useMessagesQuery>;
 export type MessagesLazyQueryHookResult = ReturnType<typeof useMessagesLazyQuery>;
 export type MessagesQueryResult = Apollo.QueryResult<SchemaTypes.MessagesQuery, SchemaTypes.MessagesQueryVariables>;
+export const MyCommunitiesDocument = gql`
+  query myCommunities {
+    me {
+      memberof {
+        communities {
+          id
+          name
+          type
+          members {
+            ...UserDetails
+          }
+        }
+      }
+    }
+  }
+  ${UserDetailsFragmentDoc}
+`;
+
+/**
+ * __useMyCommunitiesQuery__
+ *
+ * To run a query within a React component, call `useMyCommunitiesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyCommunitiesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyCommunitiesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyCommunitiesQuery(
+  baseOptions?: Apollo.QueryHookOptions<SchemaTypes.MyCommunitiesQuery, SchemaTypes.MyCommunitiesQueryVariables>
+) {
+  return Apollo.useQuery<SchemaTypes.MyCommunitiesQuery, SchemaTypes.MyCommunitiesQueryVariables>(
+    MyCommunitiesDocument,
+    baseOptions
+  );
+}
+export function useMyCommunitiesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<SchemaTypes.MyCommunitiesQuery, SchemaTypes.MyCommunitiesQueryVariables>
+) {
+  return Apollo.useLazyQuery<SchemaTypes.MyCommunitiesQuery, SchemaTypes.MyCommunitiesQueryVariables>(
+    MyCommunitiesDocument,
+    baseOptions
+  );
+}
+export type MyCommunitiesQueryHookResult = ReturnType<typeof useMyCommunitiesQuery>;
+export type MyCommunitiesLazyQueryHookResult = ReturnType<typeof useMyCommunitiesLazyQuery>;
+export type MyCommunitiesQueryResult = Apollo.QueryResult<
+  SchemaTypes.MyCommunitiesQuery,
+  SchemaTypes.MyCommunitiesQueryVariables
+>;
 export const OpportunitiesDocument = gql`
   query opportunities($id: String!) {
     ecoverse {
@@ -3916,6 +3971,7 @@ export type RelationsQueryResult = Apollo.QueryResult<SchemaTypes.RelationsQuery
 export const RoomDocument = gql`
   query room($id: String!) {
     me {
+      id
       room(roomID: $id) {
         id
         isDirect
@@ -3962,6 +4018,7 @@ export type RoomQueryResult = Apollo.QueryResult<SchemaTypes.RoomQuery, SchemaTy
 export const RoomsDocument = gql`
   query rooms {
     me {
+      id
       rooms {
         id
         isDirect

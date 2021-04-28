@@ -1,5 +1,6 @@
 query rooms {
   me {
+    id
     rooms {
       id
       isDirect

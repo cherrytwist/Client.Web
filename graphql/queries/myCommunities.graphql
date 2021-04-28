@@ -1,0 +1,14 @@
+query myCommunities {
+  me {
+    memberof {
+      communities {
+        id
+        name
+        type
+        members {
+          ...UserDetails
+        }
+      }
+    }
+  }
+}
