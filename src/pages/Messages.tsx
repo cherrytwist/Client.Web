@@ -323,7 +323,7 @@ export const Messages: FC<PageProps> = () => {
 
   return (
     <div className={styles.communicationContainer}>
-      <div ref={refChat} style={{ position: 'absolute', inset: 0 }} />
+      <div ref={refChat} style={{ position: 'absolute', inset: 0, zIndex: -1 }} />
       <div style={{ display: 'flex', flexDirection: 'column', width: 240, height: height }}>
         <RoomsWidget rooms={rooms} />
       </div>

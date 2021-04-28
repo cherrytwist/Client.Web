@@ -68,17 +68,17 @@ const communityTab = 'community';
 const directMessagesTab = 'dms';
 
 export const RoomsWidget: FC<RoomsWidgetProps> = ({ rooms }) => {
-  const [view, setView] = useState(communityTab);
+  const [activeTab, setActiveTab] = useState(communityTab);
   const roomList = useMemo(() => rooms.filter(x => x.type === 'room'), rooms);
   const userList = useMemo(() => rooms.filter(x => x.type === 'user'), rooms);
 
   const styles = useRoomStyle();
   return (
     <Tabs
-      activeKey={view}
+      activeKey={activeTab}
+      id="tabs-id"
       onSelect={k => {
-        k && setView(k);
-        console.log(k);
+        k && setActiveTab(k);
       }}
     >
       <Tab eventKey={communityTab} title={'Communities'}>
