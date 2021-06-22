@@ -1,13 +1,15 @@
 import React, { FC } from 'react';
 import { Modal } from 'react-bootstrap';
 import {
-  ChallengeProfileDocument,
-  OpportunityProfileDocument,
+  refetchChallengeProfileQuery,
+  refetchOpportunityProfileQuery,
   useUpdateChallengeMutation,
   useUpdateOpportunityMutation,
 } from '../../generated/graphql';
-import { Context } from '../../types/graphql-schema';
+import { useApolloErrorHandler } from '../../hooks/useApolloErrorHandler';
+import { useEcoverse } from '../../hooks/useEcoverse';
 import { createStyles } from '../../hooks/useTheme';
+import { Context } from '../../types/graphql-schema';
 import Button from '../core/Button';
 import ProfileForm from '../ProfileForm/ProfileForm';
 
@@ -27,25 +29,27 @@ const useContextEditStyles = createStyles(() => ({
 }));
 
 const ContextEdit: FC<Props> = ({ show, onHide, variant, data, id }) => {
+  const { ecoverseId } = useEcoverse();
   const styles = useContextEditStyles();
+  const handleError = useApolloErrorHandler();
 
   const [updateChallenge] = useUpdateChallengeMutation({
     onCompleted: () => onHide(),
-    onError: e => console.error(e),
-    refetchQueries: [{ query: ChallengeProfileDocument, variables: { id } }],
+    onError: handleError,
+    refetchQueries: [refetchChallengeProfileQuery({ ecoverseId, challengeId: id })],
     awaitRefetchQueries: true,
   });
   const [updateOpportunity] = useUpdateOpportunityMutation({
     onCompleted: () => onHide(),
-    onError: e => console.error(e),
-    refetchQueries: [{ query: OpportunityProfileDocument, variables: { id } }],
+    onError: handleError,
+    refetchQueries: [refetchOpportunityProfileQuery({ ecoverseId, opportunityId: id })],
     awaitRefetchQueries: true,
   });
 
   let submitWired;
 
   const onSubmit = async values => {
-    const { name, textID, state, ...context } = values;
+    const { name, nameID, state, ...context } = values;
 
     const updatedRefs = context.references.map(ref => ({ uri: ref.uri, name: ref.name }));
     const contextWithUpdatedRefs = { ...context };
@@ -61,7 +65,7 @@ const ContextEdit: FC<Props> = ({ show, onHide, variant, data, id }) => {
     } else if (variant === 'opportunity') {
       await updateOpportunity({
         variables: {
-          opportunityData: {
+          input: {
             ID: id,
             context: {
               ...contextWithUpdatedRefs,

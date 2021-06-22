@@ -25,6 +25,66 @@
       "notSpecified": "not specified",
       "male": "male",
       "female": "female"
+    },
+    "enums": {
+      "authorization-credentials": {
+        "GlobalAdmin": {
+          "name": "Global Admin",
+          "order": 0
+        },
+        "GlobalAdminCommunity": {
+          "name": "Global Community Admin",
+          "order": 1
+        },
+        "GlobalAdminChallenges": {
+          "name": "Global Challenges Admin",
+          "order": 2
+        },
+        "GlobalRegistered": {
+          "name": "Registered",
+          "order": 999
+        },
+        "EcoverseAdmin": {
+          "name": "Ecoverse Admin",
+          "order": 3
+        },
+        "EcoverseMember": {
+          "name": "Ecoverse Member",
+          "order": 4
+        },
+        "ChallengeAdmin": {
+          "name": "Challenge Admin",
+          "order": 5
+        },
+        "ChallengeMember": {
+          "name": "Challenge Member",
+          "order": 6
+        },
+        "OpportunityMember": {
+          "name": "Opportunity Member",
+          "order": 7
+        },
+        "OrganisationAdmin": {
+          "name": "Organisation Admin",
+          "order": 8
+        },
+        "OrganisationMember": {
+          "name": "Organisation Member",
+          "order": 9
+        },
+        "UserSelfManagement": {
+          "name": "User Sel fManagement",
+          "order": 10
+        },
+        "community-member": {
+          "name": "Community Member",
+          "order": 11
+        },
+        "UserGroupMember": {
+          "name": "User Group Member",
+          "order": 12
+        }
+      }
     }
   },
   "forms": {
@@ -41,9 +101,44 @@
       "information": "Information",
       "warning": "Warning",
       "success": "Success"
+    },
+    "referenceSegment": {
+      "title": "References",
+      "missing-refreneces": "No references yet",
+      "tooltips": {
+        "add-reference": "Add a reference",
+        "remove-reference": "Remove the reference"
+      }
+    },
+    "card": {
+      "you-are-in": "You are in"
+    },
+    "errorblock": {
+      "message": "Sorry, an error occurred while loading {{blockName}}."
     }
   },
   "pages": {
+    "home": {
+      "sections": {
+        "welcome": {
+          "header": "Where Open Innovation Happens",
+          "subheader": "Putting Challenges central. <br>Allowing everyone to contribute. <br>Enabling connections and finding capability.",
+          "body": "Unleashing societies potential. Building a better future, together.",
+          "activity": {
+            "title": "Activity",
+            "ecoverses": "Ecoverses",
+            "challenges": "Challenges",
+            "users": "Users",
+            "organisations": "Organisations"
+          }
+        },
+        "ecoverse": {
+          "header": "Explore the hosted Ecoverses!",
+          "subheader": "Each Ecoverse contains one or more Challenges.<br>Facilitated by a Host Organisation.<br>",
+          "body": "Share context, build community, coordinate and collaborate. Connect."
+        }
+      }
+    },
     "ecoverse": {
       "cards": {
         "activity": {
@@ -52,9 +147,6 @@
           "opportunities": "Opportunities",
           "projects": "Projects",
           "members": "Members"
-        },
-        "tags": {
-          "you-are-in": "You are in"
         }
       },
       "sections": {
@@ -73,9 +165,6 @@
           "subheader": "Recently initiated projects in the {{ecoverse}} Ecoverse",
           "new-project": "Starting a new project is easy. In just a few steps your project is good to go. Set the scope, allocate resources, pick your hero’s and let stakeholders vote for your proposal. When everyone has signed the fun can begin. Let’s get started!"
         }
-      },
-      "errorblock": {
-        "message": "Sorry, an error occurred while loading {{blockName}}."
       }
     },
     "challenge": {
@@ -145,7 +234,7 @@
           "header": "Impact"
         },
         "adoption-ecosystem": {
-          "header": "Adoption cosystem",
+          "header": "Adoption ecosystem",
           "subheader": "Stakeholders & Key users",
           "buttons": {
             "add-actor-group": {
@@ -242,7 +331,7 @@
           "terms": "The terms of use and the privacy policy must be accepted."
         }
       },
-      "header": "Create an account on the <strong>{{ecoverseName}}</strong> ecoverse",
+      "header": "Create an account to start using Cherrytwist",
       "terms": "I accept the <terms>Terms of Use</terms> and <privacy>Privacy Policy</privacy>.",
       "buttons": {
         "register": "Register"

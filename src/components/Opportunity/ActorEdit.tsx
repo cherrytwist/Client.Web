@@ -3,12 +3,14 @@ import React, { FC } from 'react';
 import { Modal } from 'react-bootstrap';
 import * as yup from 'yup';
 import {
-  OpportunityActorGroupsDocument,
+  refetchOpportunityActorGroupsQuery,
   useCreateActorMutation,
   useUpdateActorMutation,
 } from '../../generated/graphql';
-import { Actor } from '../../types/graphql-schema';
+import { useApolloErrorHandler } from '../../hooks/useApolloErrorHandler';
+import { useEcoverse } from '../../hooks/useEcoverse';
 import { createStyles } from '../../hooks/useTheme';
+import { Actor } from '../../types/graphql-schema';
 import Button from '../core/Button';
 import TextInput, { TextArea } from '../core/TextInput';
 
@@ -17,8 +19,8 @@ interface Props {
   onHide: () => void;
   data?: Actor;
   id?: string;
-  opportunityId?: string | undefined;
-  actorGroupId?: string | undefined;
+  opportunityId: string;
+  actorGroupId?: string;
   isCreate?: boolean;
 }
 
@@ -41,7 +43,9 @@ const useContextEditStyles = createStyles(theme => ({
 }));
 
 const ActorEdit: FC<Props> = ({ show, onHide, data, id, opportunityId, actorGroupId }) => {
+  const { ecoverseId } = useEcoverse();
   const styles = useContextEditStyles();
+  const handleError = useApolloErrorHandler();
 
   const initialValues: Actor = {
     id: id || '',
@@ -60,24 +64,24 @@ const ActorEdit: FC<Props> = ({ show, onHide, data, id, opportunityId, actorGrou
 
   const [createActor] = useCreateActorMutation({
     onCompleted: () => onHide(),
-    onError: e => console.error(e),
-    refetchQueries: [{ query: OpportunityActorGroupsDocument, variables: { id: Number(opportunityId) } }],
+    onError: handleError,
+    refetchQueries: [refetchOpportunityActorGroupsQuery({ ecoverseId, opportunityId })],
     awaitRefetchQueries: true,
   });
 
   const [updateActor] = useUpdateActorMutation({
     onCompleted: () => onHide(),
-    onError: e => console.error(e),
+    onError: handleError,
     awaitRefetchQueries: true,
   });
 
   const onSubmit = (values: Actor) => {
     const { id: actorId, __typename, ...rest } = values;
-    if (!id) {
+    if (!actorId && actorGroupId) {
       createActor({
         variables: {
           input: {
-            parentID: Number(actorGroupId),
+            actorGroupID: actorGroupId,
             ...rest,
           },
         },
@@ -85,11 +89,11 @@ const ActorEdit: FC<Props> = ({ show, onHide, data, id, opportunityId, actorGrou
 
       return;
     }
-    if (id) {
+    if (actorId) {
       updateActor({
         variables: {
           input: {
-            ID: id,
+            ID: actorId,
             ...rest,
           },
         },

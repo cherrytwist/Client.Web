@@ -1,6 +1,6 @@
-mutation updateOpportunity($opportunityData: UpdateOpportunityInput!) {
-  updateOpportunity(opportunityData: $opportunityData) {
+mutation updateOpportunity($input: UpdateOpportunityInput!) {
+  updateOpportunity(opportunityData: $input) {
     id
-    name
+    displayName
   }
 }

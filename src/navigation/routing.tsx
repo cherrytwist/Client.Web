@@ -2,14 +2,13 @@ import React, { FC } from 'react';
 import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
 import { FourOuFour } from '../pages';
 import AboutPage from '../pages/About';
+import HomePage from '../pages/home/Home';
 import { Admin } from './admin/admin';
+import { AuthRoute } from './auth/auth';
 import { Community } from './community';
 import { Ecoverses } from './ecoverse';
-import LoginRoute from './login';
-import LogoutRoute from './logout';
 import { Messages } from './messages';
 import ProfileRoute from './profile';
-import { RegisterRoute } from './register';
 import { Restricted } from './restricted';
 import RestrictedRoute, { AuthenticatedRoute } from './route.extensions';
 import WelcomeRoute from './welcome';
@@ -26,17 +25,11 @@ export const Routing: FC = () => {
       <RestrictedRoute path="/admin" allowedGroups={adminGroups} strict={false}>
         <Admin />
       </RestrictedRoute>
-      <Route exact path="/login">
-        <LoginRoute />
-      </Route>
-      <Route exact path="/logout">
-        <LogoutRoute />
+      <Route path="/auth">
+        <AuthRoute />
       </Route>
       <Route exact path="/welcome">
         <WelcomeRoute />
-      </Route>
-      <Route exact path="/register">
-        <RegisterRoute />
       </Route>
       <RestrictedRoute path="/community">
         <Community />
@@ -53,9 +46,12 @@ export const Routing: FC = () => {
       <Route exact path="/restricted">
         <Restricted />
       </Route>
-      <AuthenticatedRoute path="/">
+      <AuthenticatedRoute path="/ecoverses">
         <Ecoverses />
       </AuthenticatedRoute>
+      <Route exact path="/">
+        <HomePage />
+      </Route>
       <Route path="*">
         <FourOuFour />
       </Route>

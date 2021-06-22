@@ -1,10 +1,15 @@
 import React, { FC, useState } from 'react';
 import { Col, Form, Modal } from 'react-bootstrap';
-import Button from '../core/Button';
-import { TextArea } from '../core/TextInput';
-import { OpportunityActorGroupsDocument, useCreateActorGroupMutation } from '../../generated/graphql';
-import Loading from '../core/Loading';
+import {
+  refetchOpportunityActorGroupsQuery,
+  useCreateActorGroupMutation,
+  useOpportunityProfileQuery,
+} from '../../generated/graphql';
+import { useEcoverse } from '../../hooks/useEcoverse';
 import { replaceAll } from '../../utils/replaceAll';
+import Button from '../core/Button';
+import Loading from '../core/Loading';
+import { TextArea } from '../core/TextInput';
 
 interface P {
   onHide: () => void;
@@ -14,14 +19,18 @@ interface P {
 }
 
 const ActorGroupCreateModal: FC<P> = ({ onHide, show, opportunityId, availableActorGroupNames }) => {
+  const { ecoverseId } = useEcoverse();
   const [createActorGroup, { loading }] = useCreateActorGroupMutation({
     onCompleted: () => onHide(),
-    refetchQueries: [{ query: OpportunityActorGroupsDocument, variables: { id: Number(opportunityId) } }],
+    refetchQueries: [refetchOpportunityActorGroupsQuery({ ecoverseId, opportunityId })],
     awaitRefetchQueries: true,
   });
   const [name, setName] = useState<string>(availableActorGroupNames[0]);
   const [description, setDescription] = useState<string>('');
-
+  const { data, loading: loadingOpportunity } = useOpportunityProfileQuery({
+    variables: { ecoverseId, opportunityId },
+  });
+  const ecosystemModelId = data?.ecoverse?.opportunity?.context?.ecosystemModel?.id;
   const isFormValid = name && description && description.length >= 2 && description.length <= 380;
 
   const onDescriptionInput = ({ target: { value } }) => {
@@ -31,19 +40,22 @@ const ActorGroupCreateModal: FC<P> = ({ onHide, show, opportunityId, availableAc
   };
 
   const onSubmit = () => {
-    createActorGroup({
-      variables: {
-        input: {
-          parentID: Number(opportunityId),
-          name,
-          description,
+    if (ecosystemModelId)
+      createActorGroup({
+        variables: {
+          input: {
+            ecosystemModelID: ecosystemModelId,
+            name,
+            description,
+          },
         },
-      },
-    }).then(() => {
-      setName('');
-      setDescription('');
-    });
+      }).then(() => {
+        setName('');
+        setDescription('');
+      });
   };
+
+  if (loadingOpportunity) return <Loading text={'Loading opportunity'} />;
 
   return (
     <Modal show={show} onHide={onHide} size="lg" aria-labelledby="contained-modal-title-vcenter" centered>
@@ -81,7 +93,7 @@ const ActorGroupCreateModal: FC<P> = ({ onHide, show, opportunityId, availableAc
       </Modal.Body>
       <Modal.Footer>
         {loading ? (
-          <Loading text={'Sending the request...'} />
+          <Loading text={'Creating actor group'} />
         ) : (
           <Button onClick={onSubmit} variant={'primary'} disabled={!isFormValid}>
             Submit

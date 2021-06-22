@@ -1,11 +1,38 @@
 export const managementData = {
   adminLvl: [
     {
-      name: 'Users',
-      buttons: [{ description: 'Edit', url: '/users' }],
+      name: 'Ecoverses',
+      buttons: [
+        { description: 'Manage', url: '/ecoverses' },
+        { description: 'New', url: '/ecoverses/new' },
+      ],
     },
     {
-      name: 'Ecoverse community',
+      name: 'Users',
+      buttons: [{ description: 'Manage', url: '/users' }],
+    },
+    {
+      name: 'Organizations',
+      buttons: [
+        { description: 'Manage', url: '/organizations' },
+        { description: 'New', url: '/organizations/new' },
+      ],
+    },
+    {
+      name: 'Authorization',
+      buttons: [
+        { description: 'Global admins', url: '/authorization/GlobalAdmin' },
+        { description: 'Global community admins', url: '/authorization/GlobalAdminCommunity' },
+      ],
+    },
+  ],
+  ecoverseLvl: [
+    {
+      name: 'Info',
+      buttons: [{ description: 'Edit', url: '/edit' }],
+    },
+    {
+      name: 'Community',
       buttons: [
         { description: 'Members', url: '/community/members' },
         { description: 'Groups', url: '/community/groups' },
@@ -19,21 +46,14 @@ export const managementData = {
         { description: 'New', url: '/challenges/new' },
       ],
     },
-    {
-      name: 'Organizations',
-      buttons: [
-        { description: 'Manage', url: '/organizations' },
-        { description: 'New', url: '/organizations/new' },
-      ],
-    },
   ],
   challengeLvl: [
     {
-      name: 'Challenge info',
+      name: 'Context',
       buttons: [{ description: 'Edit', url: '/edit' }],
     },
     {
-      name: 'Challenge community',
+      name: 'Community',
       buttons: [
         { description: 'Members', url: '/community/members' },
         { description: 'Groups', url: '/community/groups' },
@@ -54,7 +74,7 @@ export const managementData = {
       buttons: [{ description: 'Edit', url: '/edit' }],
     },
     {
-      name: 'Opportunity community',
+      name: 'Community',
       buttons: [
         { description: 'Members', url: '/community/members' },
         { description: 'Groups', url: '/community/groups' },
@@ -64,11 +84,11 @@ export const managementData = {
   ],
   organizationLvl: [
     {
-      name: 'Organization info',
+      name: 'OrganizationContext',
       buttons: [{ description: 'Edit', url: '/edit' }],
     },
     {
-      name: 'Organization groups',
+      name: 'Groups',
       buttons: [
         { description: 'Manage', url: '/groups' },
         { description: 'New', url: '/groups/new' },

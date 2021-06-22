@@ -1,25 +1,30 @@
-import React, { FC, useEffect, useMemo, useState } from 'react';
-import { Alert } from 'react-bootstrap';
+import React, { FC, useEffect, useMemo } from 'react';
+import { Container } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import { Path } from '../../context/NavigationProvider';
 import {
+  refetchChallengeProfileInfoQuery,
+  refetchChallengesWithCommunityQuery,
+  refetchOpportunitiesQuery,
+  refetchOpportunityProfileInfoQuery,
   useChallengeProfileInfoLazyQuery,
   useCreateChallengeMutation,
   useCreateOpportunityMutation,
+  useCreateReferenceOnContextMutation,
+  useDeleteReferenceMutation,
   useOpportunityProfileInfoLazyQuery,
   useUpdateChallengeMutation,
   useUpdateOpportunityMutation,
-  NewOpportunityFragmentDoc,
-  NewChallengeFragmentDoc,
-  ChallengeProfileInfoDocument,
-  OpportunityProfileInfoDocument,
 } from '../../generated/graphql';
+import { useApolloErrorHandler } from '../../hooks/useApolloErrorHandler';
 import { useEcoverse } from '../../hooks/useEcoverse';
 import { useUpdateNavigation } from '../../hooks/useNavigation';
+import { useNotification } from '../../hooks/useNotification';
+import { UpdateContextInput, UpdateReferenceInput } from '../../types/graphql-schema';
 import Button from '../core/Button';
 import Loading from '../core/Loading';
 import Typography from '../core/Typography';
-import ProfileForm from '../ProfileForm/ProfileForm';
+import ProfileForm, { ProfileFormValuesType } from '../ProfileForm/ProfileForm';
 
 export enum ProfileSubmitMode {
   createChallenge,
@@ -40,70 +45,50 @@ interface Params {
 }
 
 const OppChallPage: FC<Props> = ({ paths, mode, title }) => {
+  const notify = useNotification();
+  const handleError = useApolloErrorHandler();
+  const [addReference] = useCreateReferenceOnContextMutation();
+  const [deleteReference] = useDeleteReferenceMutation();
   const { challengeId = '', opportunityId = '', ecoverseId = '' } = useParams<Params>();
   const { toEcoverseId } = useEcoverse();
-  const [message, setMessage] = useState<string | null>(null);
-  const [variant, setVariant] = useState<'success' | 'danger'>('success');
   const [getChallengeProfileInfo, { data: challengeProfile }] = useChallengeProfileInfoLazyQuery();
   const [getOpportunityProfileInfo, { data: opportunityProfile }] = useOpportunityProfileInfoLazyQuery();
-  const [createChallenge, { loading: loading1 }] = useCreateChallengeMutation({
-    update: (cache, { data }) => {
-      if (data) {
-        const { createChallenge } = data;
 
-        cache.modify({
-          fields: {
-            challenges(exitingChallenges = []) {
-              const newChallenge = cache.writeFragment({
-                data: createChallenge,
-                fragment: NewChallengeFragmentDoc,
-              });
-              return [...exitingChallenges, newChallenge];
-            },
-          },
-        });
-      }
-    },
+  const [createChallenge, { loading: loading1 }] = useCreateChallengeMutation({
+    refetchQueries: [refetchChallengesWithCommunityQuery({ ecoverseId })],
+    awaitRefetchQueries: true,
     onCompleted: () => onSuccess('Successfully created'),
-    onError: e => onError(e.message),
+    onError: handleError,
   });
   const [createOpportunity, { loading: loading2 }] = useCreateOpportunityMutation({
-    update: (cache, { data }) => {
-      if (data) {
-        const { createOpportunity } = data;
-
-        cache.modify({
-          fields: {
-            opportunities(existingOpportunities = []) {
-              const newOpportunities = cache.writeFragment({
-                data: createOpportunity,
-                fragment: NewOpportunityFragmentDoc,
-              });
-              return [...existingOpportunities, newOpportunities];
-            },
-          },
-        });
-      }
-    },
+    refetchQueries: [refetchOpportunitiesQuery({ ecoverseId, challengeId })],
+    awaitRefetchQueries: true,
     onCompleted: () => onSuccess('Successfully created'),
-    onError: e => onError(e.message),
+    onError: handleError,
   });
   const [updateChallenge, { loading: loading3 }] = useUpdateChallengeMutation({
     onCompleted: () => onSuccess('Successfully updated'),
-    onError: e => onError(e.message),
-    refetchQueries: [{ query: ChallengeProfileInfoDocument, variables: { id: challengeId } }],
+    onError: handleError,
+    refetchQueries: [refetchChallengeProfileInfoQuery({ ecoverseId, challengeId })],
     awaitRefetchQueries: true,
   });
   const [updateOpportunity, { loading: loading4 }] = useUpdateOpportunityMutation({
     onCompleted: () => onSuccess('Successfully updated'),
-    onError: e => onError(e.message),
-    refetchQueries: [{ query: OpportunityProfileInfoDocument, variables: { id: opportunityId } }],
+    onError: handleError,
+    refetchQueries: [refetchOpportunityProfileInfoQuery({ ecoverseId, opportunityId })],
     awaitRefetchQueries: true,
   });
 
   useEffect(() => {
-    if (mode === ProfileSubmitMode.updateChallenge) getChallengeProfileInfo({ variables: { id: challengeId } });
-    if (mode === ProfileSubmitMode.updateOpportunity) getOpportunityProfileInfo({ variables: { id: opportunityId } });
+    if (mode === ProfileSubmitMode.updateChallenge)
+      getChallengeProfileInfo({
+        variables: {
+          ecoverseId,
+          challengeId,
+        },
+      });
+    if (mode === ProfileSubmitMode.updateOpportunity)
+      getOpportunityProfileInfo({ variables: { ecoverseId, opportunityId } });
   }, []);
 
   const isEdit = mode === ProfileSubmitMode.updateOpportunity || mode === ProfileSubmitMode.updateChallenge;
@@ -111,32 +96,57 @@ const OppChallPage: FC<Props> = ({ paths, mode, title }) => {
   const isLoading = loading1 || loading2 || loading3 || loading4;
   const profile = challengeProfile?.ecoverse?.challenge || opportunityProfile?.ecoverse?.opportunity;
   const profileTopLvlInfo = {
-    name: profile?.name,
-    textID: profile?.textID,
+    name: profile?.displayName,
+    nameID: profile?.nameID,
   };
 
   const onSuccess = (message: string) => {
-    setVariant('success');
-    setMessage(message);
+    notify(message, 'success');
   };
 
-  const onError = (message: string) => {
-    setVariant('danger');
-    setMessage(message);
-  };
-
-  const currentPaths = useMemo(() => [...paths, { name: profile?.name || 'new', real: false }], [paths, profile]);
+  const currentPaths = useMemo(() => [...paths, { name: profile?.displayName || 'new', real: false }], [
+    paths,
+    profile,
+  ]);
   useUpdateNavigation({ currentPaths });
 
-  const onSubmit = values => {
-    const { id, name, textID, state, ...context } = values;
+  const onSubmit = async (values: ProfileFormValuesType) => {
+    const { name, nameID, ...context } = values;
+    const contextId = profile?.context?.id || '';
 
-    const updatedRefs = context.references.map(ref => ({ uri: ref.uri, name: ref.name })); // removing id from refs
-    const contextWithUpdatedRefs = { ...context };
-    contextWithUpdatedRefs.references = updatedRefs;
+    const initialReferences = profile?.context?.references || [];
+    const toUpdate = context.references.filter(x => x.id);
 
-    const data = { name, textID, state: '', context: contextWithUpdatedRefs };
-    const updateData = { name, state: '', context: contextWithUpdatedRefs };
+    if (mode === ProfileSubmitMode.updateChallenge || mode === ProfileSubmitMode.updateOpportunity) {
+      const toRemove = initialReferences.filter(x => x.id && !context.references.some(r => r.id && r.id === x.id));
+      const toAdd = context.references.filter(x => !x.id);
+      for (const ref of toRemove) {
+        await deleteReference({ variables: { input: { ID: ref.id } } });
+      }
+      for (const ref of toAdd) {
+        await addReference({
+          variables: {
+            input: {
+              contextID: contextId,
+              name: ref.name,
+              description: ref.description,
+              uri: ref.uri,
+            },
+          },
+        });
+      }
+    }
+    const updatedRefs: UpdateReferenceInput[] = toUpdate.map<UpdateReferenceInput>(r => ({
+      ID: r.id,
+      description: r.description,
+      name: r.name,
+      uri: r.uri,
+    }));
+
+    const contextWithUpdatedRefs: UpdateContextInput = { ...context, references: updatedRefs };
+
+    // const data = { displayName: name, nameID, context };
+    // const updateData = { displayName: name, context: contextWithUpdatedRefs };
 
     if (ProfileSubmitMode) {
       switch (mode) {
@@ -144,8 +154,10 @@ const OppChallPage: FC<Props> = ({ paths, mode, title }) => {
           createChallenge({
             variables: {
               input: {
-                ...data,
-                parentID: Number(toEcoverseId(ecoverseId)), // TODO [ATS] Where is this coming from?
+                nameID,
+                context,
+                displayName: name,
+                parentID: toEcoverseId(ecoverseId),
               },
             },
           });
@@ -153,27 +165,21 @@ const OppChallPage: FC<Props> = ({ paths, mode, title }) => {
         case ProfileSubmitMode.updateChallenge:
           updateChallenge({
             variables: {
-              input: { ...updateData, ID: challengeId },
+              input: { nameID, context: contextWithUpdatedRefs, displayName: name, ID: challengeId },
             },
           });
           break;
         case ProfileSubmitMode.createOpportunity:
           createOpportunity({
             variables: {
-              input: {
-                ...data,
-                parentID: challengeId,
-              },
+              input: { nameID, context, displayName: name, challengeID: challengeId },
             },
           });
           break;
         case ProfileSubmitMode.updateOpportunity:
           updateOpportunity({
             variables: {
-              opportunityData: {
-                ...updateData,
-                ID: opportunityId,
-              },
+              input: { nameID, context: contextWithUpdatedRefs, displayName: name, ID: opportunityId },
             },
           });
           break;
@@ -185,8 +191,8 @@ const OppChallPage: FC<Props> = ({ paths, mode, title }) => {
 
   let submitWired;
   return (
-    <>
-      <Typography variant={'h3'} className={'mt-4 mb-4'}>
+    <Container>
+      <Typography variant={'h2'} className={'mt-4 mb-4'}>
         {title}
       </Typography>
       <ProfileForm
@@ -201,10 +207,7 @@ const OppChallPage: FC<Props> = ({ paths, mode, title }) => {
           {isLoading ? <Loading text={'Processing'} /> : 'Save'}
         </Button>
       </div>
-      <Alert show={!!message} variant={variant} onClose={() => setMessage(null)} dismissible>
-        {message}
-      </Alert>
-    </>
+    </Container>
   );
 };
 

@@ -15,11 +15,11 @@ const useHeaderStyles = createStyles(theme => ({
   earlyAccessAlert: {
     width: 'calc(100% + 30px)',
     marginLeft: -15,
-    height: 40,
+    height: theme.earlyAccessAlert.height,
     background: theme.palette.primary,
   },
   alertText: {
-    padding: '0 40px',
+    padding: `0 ${theme.earlyAccessAlert.height}px`,
   },
   absolute: {
     position: 'absolute',
@@ -71,7 +71,7 @@ const Header: FC<HeaderProps> = ({ children, innerRef }) => {
               </Typography>
               <div className={'flex-grow-1'} />
               <Typography variant={'caption'} weight={'boldLight'} color={'background'}>
-                Please feel free to leave a feedback{' '}
+                Please feel free to leave feedback{' '}
                 <a
                   href={`${env?.REACT_APP_FEEDBACK_URL}`}
                   target={'_blank'}

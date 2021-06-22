@@ -6,7 +6,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './components/App';
 import { AuthenticationProvider } from './context/AuthenticationProvider';
 import { ConfigProvider } from './context/ConfigProvider';
-import { EcoverseProvider } from './context/EcoverseProvider';
+import { EcoversesProvider } from './context/EcoversesProvider';
 import { NavigationProvider } from './context/NavigationProvider';
 import { ThemeProvider } from './context/ThemeProvider';
 import { UserProvider } from './context/UserProvider';
@@ -19,9 +19,7 @@ import { Error as ErrorPage } from './pages/Error';
 import sentryBootstrap from './sentry/bootstrap';
 import configureStore from './store';
 
-const graphQLEndpoint =
-  (env && env.REACT_APP_GRAPHQL_ENDPOINT) ||
-  (process.env.NODE_ENV === 'production' ? '/graphql' : 'http://localhost:4000/graphql');
+const graphQLEndpoint = (env && env.REACT_APP_GRAPHQL_ENDPOINT) || '/graphql';
 
 sentryBootstrap();
 
@@ -53,6 +51,12 @@ const useGlobalStyles = createStyles(theme => ({
       display: 'flex',
       flexDirection: 'column',
     },
+    '#main': {
+      display: 'flex',
+      flexGrow: 1,
+      marginLeft: theme.sidebar.width + theme.shape.spacing(2),
+      width: `calc(100vw - ${theme.sidebar.width}px - ${theme.shape.spacing(2)}px)`,
+    },
   },
 }));
 
@@ -79,13 +83,13 @@ const ReduxRoot: FC = () => {
           <CTApolloProvider>
             <ThemeProvider>
               <NavigationProvider>
-                <UserProvider>
-                  <EcoverseProvider>
+                <EcoversesProvider>
+                  <UserProvider>
                     <App>
                       <Routing />
                     </App>
-                  </EcoverseProvider>
-                </UserProvider>
+                  </UserProvider>
+                </EcoversesProvider>
               </NavigationProvider>
             </ThemeProvider>
           </CTApolloProvider>

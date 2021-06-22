@@ -4,21 +4,19 @@ import { Button, Form } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { useHistory } from 'react-router-dom';
 import * as yup from 'yup';
-import { useDeleteReferenceMutation, useTagsetsTemplateQuery } from '../../../generated/graphql';
+import { useTagsetsTemplateQuery } from '../../../generated/graphql';
 import { OrganisationModel } from '../../../models/Organisation';
-import { Reference, Tagset } from '../../../models/Profile';
+import { Tagset } from '../../../models/Profile';
 import { Organisation, TagsetTemplate } from '../../../types/graphql-schema';
 import { EditMode } from '../../../utils/editMode';
 import Section, { Header } from '../../core/Section';
 import EditableAvatar from '../../EditableAvatar';
-import InputField from '../Common/InputField';
+import FormikInputField from '../Common/FormikInputField';
 import { referenceSchemaFragment, ReferenceSegment } from '../Common/ReferenceSegment';
 import TagsetSegment, { tagsetSchemaFragment } from '../Common/TagsetSegment';
 
-/*local files imports end*/
-
 const emptyOrganization = {
-  name: '',
+  displayName: '',
   profile: {
     description: '',
     avatar: '',
@@ -43,8 +41,6 @@ export const OrganizationForm: FC<Props> = ({
 }) => {
   const history = useHistory();
   const { t } = useTranslation();
-  const [removeRef] = useDeleteReferenceMutation();
-
   const { data: config } = useTagsetsTemplateQuery({});
 
   useEffect(() => {}, [config]);
@@ -54,8 +50,8 @@ export const OrganizationForm: FC<Props> = ({
   const isReadOnlyMode = editMode === EditMode.readOnly;
 
   const {
-    name,
-    textID,
+    displayName,
+    nameID,
     profile: { id: profileId, description, references, avatar },
   } = currentOrganization;
 
@@ -80,8 +76,8 @@ export const OrganizationForm: FC<Props> = ({
   }, [currentOrganization, tagsetsTemplate]);
 
   const initialValues = {
-    name: name || '',
-    textID: textID || '',
+    displayName: displayName || '',
+    nameID: nameID || '',
     description: description || '',
     avatar: avatar || '',
     tagsets: tagsets || [],
@@ -89,8 +85,8 @@ export const OrganizationForm: FC<Props> = ({
   };
 
   const validationSchema = yup.object().shape({
-    name: yup.string().required(t('forms.validations.required')),
-    textID: yup.string().required(t('forms.validations.required')),
+    displayName: yup.string().required(t('forms.validations.required')),
+    nameID: yup.string().required(t('forms.validations.required')),
     avatar: yup.string(),
     description: yup.string().max(400),
     tagsets: tagsetSchemaFragment,
@@ -103,14 +99,8 @@ export const OrganizationForm: FC<Props> = ({
    * @return void
    * @summary if edits current organization data or creates a new one depending on the edit mode
    */
-  const handleSubmit = async (orgData: OrganisationModel, initialReferences: Reference[]) => {
+  const handleSubmit = async (orgData: OrganisationModel) => {
     const { tagsets, avatar, references, description, ...otherData } = orgData;
-
-    const toRemove = initialReferences.filter(x => x.id && !references.some(r => r.id === x.id));
-
-    for (const ref of toRemove) {
-      await removeRef({ variables: { input: { ID: Number(ref.id) } } });
-    }
 
     const organization: Organisation = {
       ...currentOrganization,
@@ -118,7 +108,7 @@ export const OrganizationForm: FC<Props> = ({
       profile: {
         description,
         avatar,
-        references: [...references].map(t => ({ name: t.name, uri: t.uri })),
+        references,
         tagsets,
       },
     };
@@ -148,9 +138,9 @@ export const OrganizationForm: FC<Props> = ({
           initialValues={initialValues}
           validationSchema={validationSchema}
           enableReinitialize
-          onSubmit={values => handleSubmit(values, references)}
+          onSubmit={values => handleSubmit(values)}
         >
-          {({ values: { name, textID, references, tagsets, avatar, description }, handleSubmit }) => {
+          {({ values: { displayName, nameID, references, tagsets, avatar, description }, handleSubmit }) => {
             return (
               <Form noValidate>
                 <Section
@@ -160,20 +150,20 @@ export const OrganizationForm: FC<Props> = ({
                 >
                   <Header text={title} />
                   <Form.Row>
-                    <InputField
-                      name={'name'}
-                      title={'Full Name'}
-                      value={name}
+                    <FormikInputField
+                      name={'displayName'}
+                      title={'Display Name'}
+                      value={displayName}
                       required={true}
                       readOnly={isReadOnlyMode}
                     />
                   </Form.Row>
 
                   <Form.Row>
-                    <InputField
-                      name={'textID'}
-                      title={'Text ID'}
-                      value={textID}
+                    <FormikInputField
+                      name={'nameID'}
+                      title={'Name ID'}
+                      value={nameID}
                       required={true}
                       readOnly={isReadOnlyMode || isEditMode}
                     />
@@ -182,7 +172,7 @@ export const OrganizationForm: FC<Props> = ({
                   {!isCreateMode && (
                     <>
                       <Form.Row>
-                        <InputField
+                        <FormikInputField
                           name={'description'}
                           title={'Description'}
                           value={description}

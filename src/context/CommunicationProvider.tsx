@@ -1,6 +1,6 @@
 import React, { FC, useMemo } from 'react';
 import Loading from '../components/core/Loading';
-import { useMyCommunitiesQuery } from '../generated/graphql';
+// import { useMyCommunitiesQuery } from '../generated/graphql';
 import { Community } from '../types/graphql-schema';
 
 export interface CommunicationContextProps {
@@ -16,7 +16,11 @@ const communicationContext = React.createContext<CommunicationContextProps>({
 interface CommunicationProviderProps {}
 
 const CommunicationProvider: FC<CommunicationProviderProps> = ({ children }) => {
-  const { data, loading } = useMyCommunitiesQuery();
+  // TODO: fix user membership
+  const { data, loading } = {
+    data: { me: { memberof: { communities: [{ members: [{ id: 0, name: 'banan' }] }] } } },
+    loading: false,
+  };
 
   const senders = useMemo(() => {
     return (
@@ -43,7 +47,7 @@ const CommunicationProvider: FC<CommunicationProviderProps> = ({ children }) => 
   return (
     <communicationContext.Provider
       value={{
-        communities: data?.me.memberof?.communities || [],
+        communities: [],
         senders: senders,
       }}
     >

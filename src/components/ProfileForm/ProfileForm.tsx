@@ -1,33 +1,38 @@
-import clsx from 'clsx';
-import { FieldArray, Formik } from 'formik';
+import { Formik } from 'formik';
 import React, { FC } from 'react';
-import { Col, Form, FormGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import * as yup from 'yup';
-import { useDeleteReferenceMutation } from '../../generated/graphql';
 import { createStyles } from '../../hooks/useTheme';
-import { Context } from '../../types/graphql-schema';
-import { removeReferences } from '../../utils/removeReferences';
-import Button from '../core/Button';
+import { Context, Reference } from '../../types/graphql-schema';
+import { ReferenceSegment } from '../Admin/Common/ReferenceSegment';
 import Divider from '../core/Divider';
-import TextInput, { TextArea } from '../core/TextInput';
-import Typography from '../core/Typography';
+import { TextArea } from '../core/TextInput';
 
 interface Profile {
   name?: string;
-  textID?: string;
-  // state?: string;
+  nameID?: string;
 }
 
 interface Props {
   context?: Context;
   profile?: Profile;
-  onSubmit: (formData: any) => void;
+  onSubmit: (formData: ProfileFormValuesType) => void;
   wireSubmit: (setter: () => void) => void;
   contextOnly?: boolean;
   isEdit: boolean;
 }
 
-interface ValuesType extends Omit<Context, 'id' | '__typename'>, Profile {}
+export interface ProfileFormValuesType {
+  name: string;
+  nameID: string;
+  background: string;
+  impact: string;
+  tagline: string;
+  vision: string;
+  who: string;
+  references: Reference[];
+}
 
 const useProfileStyles = createStyles(theme => ({
   field: {
@@ -44,12 +49,12 @@ const useProfileStyles = createStyles(theme => ({
 }));
 
 const ProfileForm: FC<Props> = ({ context, profile, onSubmit, wireSubmit, isEdit, contextOnly = false }) => {
+  const { t } = useTranslation();
   const styles = useProfileStyles();
 
-  const initialValues: ValuesType = {
+  const initialValues: ProfileFormValuesType = {
     name: profile?.name || '',
-    textID: profile?.textID || '',
-    // state: profile?.state || '',
+    nameID: profile?.nameID || '',
     background: context?.background || '',
     impact: context?.impact || '',
     tagline: context?.tagline || '',
@@ -60,34 +65,29 @@ const ProfileForm: FC<Props> = ({ context, profile, onSubmit, wireSubmit, isEdit
 
   const validationSchema = yup.object().shape({
     name: contextOnly ? yup.string() : yup.string().required(),
-    textID: contextOnly
+    nameID: contextOnly
       ? yup.string()
       : yup
           .string()
           .required()
-          .min(3, 'TextID should be at least 3 symbols long')
+          .min(3, 'NameID should be at least 3 symbols long')
           .max(20, 'Exceeded the limit of 20 characters')
-          .matches(/^\S*$/, 'TextID cannot contain spaces'),
-    // state: contextOnly ? yup.string() : yup.string().required(),
-    background: yup.string().required(),
-    impact: yup.string().required(),
-    tagline: yup.string().required(),
-    vision: yup.string().required(),
-    who: yup.string().required(),
+          .matches(/^\S*$/, 'nameID cannot contain spaces'),
+    background: yup.string().required(t('forms.validations.required')),
+    impact: yup.string().required(t('forms.validations.required')),
+    tagline: yup.string().required(t('forms.validations.required')),
+    vision: yup.string().required(t('forms.validations.required')),
+    who: yup.string().required(t('forms.validations.required')),
     references: yup.array().of(
       yup.object().shape({
-        name: yup.string().required(),
-        uri: yup.string().required(),
+        name: yup.string().required(t('forms.validations.required')),
+        uri: yup.string().required(t('forms.validations.required')),
       })
     ),
   });
 
-  const [removeRef] = useDeleteReferenceMutation();
-
   let isSubmitWired = false;
-  let referencesToRemove: string[] = [];
   const ConditionalTextArea = contextOnly ? TextArea : Form.Control;
-  const ConditionalTextInput = contextOnly ? TextInput : Form.Control;
 
   return (
     <Formik
@@ -95,7 +95,6 @@ const ProfileForm: FC<Props> = ({ context, profile, onSubmit, wireSubmit, isEdit
       validationSchema={validationSchema}
       enableReinitialize
       onSubmit={async values => {
-        await removeReferences(referencesToRemove, removeRef);
         onSubmit(values);
       }}
     >
@@ -150,14 +149,13 @@ const ProfileForm: FC<Props> = ({ context, profile, onSubmit, wireSubmit, isEdit
               <>
                 {getTextArea({ name: 'name', label: 'Name' })}
                 {getTextArea({
-                  name: 'textID',
-                  label: 'Text ID',
+                  name: 'nameID',
+                  label: 'Name ID',
                   rows: 1,
                   placeholder:
                     'Unique textual identifier, used for URL paths. Note: cannot be modified after creation.',
                   disabled: isEdit,
                 })}
-                {/*{getTextArea('state', 'State')}*/}
               </>
             )}
             {getTextArea({ name: 'tagline', label: 'Tagline' })}
@@ -166,72 +164,7 @@ const ProfileForm: FC<Props> = ({ context, profile, onSubmit, wireSubmit, isEdit
             {getTextArea({ name: 'vision', label: 'Vision' })}
             {getTextArea({ name: 'who', label: 'Who' })}
 
-            <FieldArray name={'references'}>
-              {({ push, remove }) => (
-                <div>
-                  <div className={'d-flex mb-4 align-items-center'}>
-                    <Typography variant={'h4'} color={'primary'}>
-                      References
-                    </Typography>
-                    <div className={'flex-grow-1'} />
-                    <OverlayTrigger
-                      overlay={
-                        <Tooltip id={'Add a reference'} placement={'bottom'}>
-                          Add a reference
-                        </Tooltip>
-                      }
-                    >
-                      <Button onClick={() => push({ name: '', uri: '' })}>+</Button>
-                    </OverlayTrigger>
-                  </div>
-
-                  {references && references?.length === 0 ? (
-                    <Form.Control type={'text'} placeholder={'No references yet'} readOnly={true} disabled={true} />
-                  ) : (
-                    references?.map((ref, index) => (
-                      <div className={clsx(styles.row, styles.field)} key={index}>
-                        <FormGroup as={Col}>
-                          {!contextOnly && <Form.Label>Name</Form.Label>}
-                          <ConditionalTextInput
-                            label={'Name'}
-                            name={`references.${index}.name`}
-                            value={references[index].name as string}
-                            onChange={handleChange}
-                          />
-                        </FormGroup>
-                        <FormGroup>
-                          {!contextOnly && <Form.Label>Url</Form.Label>}
-                          <ConditionalTextInput
-                            label={'Url'}
-                            name={`references.${index}.uri`}
-                            value={references[index].uri as string}
-                            onChange={handleChange}
-                          />
-                        </FormGroup>
-                        <OverlayTrigger
-                          overlay={
-                            <Tooltip id={'remove a reference'} placement={'bottom'}>
-                              Remove the reference
-                            </Tooltip>
-                          }
-                        >
-                          <Button
-                            onClick={() => {
-                              remove(index);
-                              // @ts-ignore
-                              ref.id && referencesToRemove.push(ref.id);
-                            }}
-                            variant={'negative'}
-                          >
-                            -
-                          </Button>
-                        </OverlayTrigger>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </FieldArray>
+            <ReferenceSegment references={references || []} />
             <Divider />
           </>
         );

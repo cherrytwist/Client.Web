@@ -1,6 +1,6 @@
-query senders($ids: [String!]!) {
+query senders($ids: [UUID_NAMEID_EMAIL!]!) {
   usersById(IDs: $ids) {
     id
-    name
+    displayName
   }
 }
